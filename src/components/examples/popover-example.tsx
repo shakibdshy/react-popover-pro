@@ -2,6 +2,7 @@
 
 import { Popover, PopoverTrigger, PopoverContent } from "@/modules/popover";
 import { shift, offset } from "@/modules/popover/middleware";
+import PopoverFeaturesExample from "./popover-features-example";
 
 export default function PopoverExample() {
   return (
@@ -233,6 +234,9 @@ export default function PopoverExample() {
           </PopoverContent>
         </Popover>
       </div>
+
+      {/* Popover Features Example */}
+      <PopoverFeaturesExample />
     </div>
   );
 }
