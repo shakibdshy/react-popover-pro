@@ -19,6 +19,8 @@ export type PopoverPlacement =
   | 'right-start'
   | 'right-end';
 
+export type TriggerMode = 'click' | 'hover' | 'context-menu';
+
 export interface VirtualElement {
   getBoundingClientRect: () => DOMRect;
 }
@@ -51,6 +53,12 @@ export interface PopoverContextValue {
   parentContext?: PopoverContextValue | null;
   parentChain: string[];
   nested: boolean;
+  // Portal
+  portalTarget?: HTMLElement;
+  // Navigation
+  onKeyDown?: (e: KeyboardEvent) => void;
+  // Trigger mode
+  triggerMode: TriggerMode;
 }
 
 export interface PopoverProps {
@@ -78,6 +86,22 @@ export interface PopoverProps {
   // Focus management
   autoFocus?: boolean;
   returnFocus?: boolean;
+  // New features
+  triggerMode?: TriggerMode;
+  openDelay?: number;
+  closeDelay?: number;
+  closeOnClickOutside?: boolean;
+  boundaryElement?: HTMLElement | null;
+  portalTarget?: HTMLElement;
+  autoPlacement?: boolean;
+  flip?: boolean;
+  shift?: boolean;
+  autoSize?: boolean;
+  sameWidth?: boolean;
+  matchWidth?: boolean;
+  preventOverflow?: boolean;
+  lazyMount?: boolean;
+  keepMounted?: boolean;
 }
 
 export interface PopoverTriggerProps {
@@ -97,4 +121,8 @@ export interface PopoverContentProps {
   // Accessibility
   role?: string;
   'aria-label'?: string;
+  // Sizing
+  width?: number | string;
+  maxWidth?: number | string;
+  maxHeight?: number | string;
 } 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
+import React, { useRef, useState, useEffect, useMemo, useCallback, RefObject } from "react";
 import { createPortal } from "react-dom";
 import {
   PopoverProps,
@@ -14,6 +14,28 @@ import { usePopoverPosition } from "./use-popover-position";
 import { useFocusManagement } from "./use-focus-management";
 import { useAnimation } from "./use-animation";
 import { applyMiddleware } from "./middleware";
+import { useHover } from "./use-hover";
+import { useAutoPlacement } from "./use-auto-placement";
+
+class PopoverErrorBoundary extends React.Component<{ children: React.ReactNode }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Popover error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong with the popover.</div>;
+    }
+
+    return this.props.children;
+  }
+}
 
 export const Popover: React.FC<PopoverProps> = ({
   children,
@@ -40,6 +62,13 @@ export const Popover: React.FC<PopoverProps> = ({
   // Focus management
   autoFocus = true,
   returnFocus = true,
+  // New features
+  triggerMode = "click",
+  openDelay = 0,
+  closeDelay = 0,
+  // Auto placement
+  autoPlacement = false,
+  boundaryElement = null,
 }) => {
   const parentContext = usePopoverContext(false);
   const nested = !!parentContext;
@@ -82,6 +111,21 @@ export const Popover: React.FC<PopoverProps> = ({
     onPositionChange?.(finalPosition);
   }, [calculatePosition, middleware, onPositionChange]);
 
+  const rafId = useRef(0);
+  const lastUpdate = useRef(0);
+  const THROTTLE_MS = 16; // Approximately 60fps
+
+  const handlePositionUpdate = useCallback(() => {
+    const now = Date.now();
+    if (now - lastUpdate.current >= THROTTLE_MS) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(() => {
+        updatePosition();
+        lastUpdate.current = now;
+      });
+    }
+  }, [updatePosition]);
+
   const handleOpenChange = useCallback((newIsOpen: boolean) => {
     if (!isControlled) {
       setUncontrolledOpen(newIsOpen);
@@ -105,21 +149,6 @@ export const Popover: React.FC<PopoverProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    let rafId: number;
-    let lastUpdate = 0;
-    const THROTTLE_MS = 16; // Approximately 60fps
-
-    const handlePositionUpdate = () => {
-      const now = Date.now();
-      if (now - lastUpdate >= THROTTLE_MS) {
-        cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => {
-          updatePosition();
-          lastUpdate = now;
-        });
-      }
-    };
-
     // Initial position update
     handlePositionUpdate();
 
@@ -129,21 +158,29 @@ export const Popover: React.FC<PopoverProps> = ({
     return () => {
       window.removeEventListener("scroll", handlePositionUpdate);
       window.removeEventListener("resize", handlePositionUpdate);
-      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(rafId.current);
     };
-  }, [isOpen, updatePosition]);
+  }, [isOpen, handlePositionUpdate]);
 
   // Keyboard handling
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         handleOpenChange(false);
+      } else if (nested) {
+        if (e.key === "ArrowRight") {
+          const nextPopover = contentRef.current?.querySelector('[data-popover-trigger]') as HTMLElement;
+          nextPopover?.focus();
+        } else if (e.key === "ArrowLeft") {
+          handleOpenChange(false);
+          triggerRef.current?.focus();
+        }
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, nested, handleOpenChange]);
 
   // Click outside handling
   useEffect(() => {
@@ -178,13 +215,25 @@ export const Popover: React.FC<PopoverProps> = ({
     }
   }, [nested, isOpen, parentChain, handleOpenChange]);
 
+  const isHovering = useHover(triggerRef as RefObject<HTMLElement>, openDelay, closeDelay);
+  const shouldOpen = triggerMode === "hover" ? isHovering : isOpen;
+
+  const autoPlacementEnabled = autoPlacement && !nested;
+  const resolvedPlacement = useAutoPlacement(
+    triggerRef as RefObject<HTMLElement>,
+    contentRef as RefObject<HTMLElement>,
+    placement,
+    boundaryElement,
+    autoPlacementEnabled
+  );
+
   const contextValue = useMemo(
     () => ({
-      isOpen,
+      isOpen: shouldOpen,
       triggerRef,
       contentRef,
       position,
-      placement,
+      placement: resolvedPlacement,
       setIsOpen: handleOpenChange,
       setPosition,
       // Animation
@@ -205,11 +254,13 @@ export const Popover: React.FC<PopoverProps> = ({
       parentContext: parentContext,
       parentChain,
       nested,
+      // Trigger mode
+      triggerMode,
     }),
     [
-      isOpen,
+      shouldOpen,
       position,
-      placement,
+      resolvedPlacement,
       handleOpenChange,
       animate,
       animationDuration,
@@ -223,10 +274,15 @@ export const Popover: React.FC<PopoverProps> = ({
       nested,
       parentContext,
       parentChain,
+      triggerMode,
     ]
   );
 
-  return <PopoverProvider value={contextValue}>{children}</PopoverProvider>;
+  return (
+    <PopoverErrorBoundary>
+      <PopoverProvider value={contextValue}>{children}</PopoverProvider>
+    </PopoverErrorBoundary>
+  );
 };
 
 export const PopoverTrigger = React.memo<PopoverTriggerProps>(
@@ -240,15 +296,44 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
       e.preventDefault();
       e.stopPropagation();
       if (disabled) return;
-      context.setIsOpen(!context.isOpen);
+      if (context.triggerMode === "click") {
+        context.setIsOpen(!context.isOpen);
+      }
+    };
+
+    const handleMouseEnter = () => {
+      if (disabled) return;
+      if (context.triggerMode === "hover") {
+        context.setIsOpen(true);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      if (disabled) return;
+      if (context.triggerMode === "hover") {
+        context.setIsOpen(false);
+      }
+    };
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (disabled) return;
+      if (context.triggerMode === "context-menu") {
+        context.setIsOpen(!context.isOpen);
+      }
     };
 
     if (asChild && React.isValidElement(children)) {
       const childProps = {
         ref: context.triggerRef,
         onClick: handleClick,
+        onMouseEnter: handleMouseEnter,
+        onMouseLeave: handleMouseLeave,
+        onContextMenu: handleContextMenu,
         "aria-expanded": context.isOpen,
         "aria-haspopup": true,
+        "data-popover-trigger": true,
         disabled,
       };
       return React.cloneElement(children, childProps);
@@ -258,8 +343,12 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
       <div
         ref={context.triggerRef}
         onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onContextMenu={handleContextMenu}
         aria-expanded={context.isOpen}
         aria-haspopup={true}
+        data-popover-trigger={true}
       >
         {children}
       </div>

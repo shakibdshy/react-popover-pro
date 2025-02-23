@@ -67,6 +67,29 @@ export default function PopoverExample() {
         </PopoverContent>
       </Popover>
 
+      {/* Hover Trigger Example */}
+      <Popover
+        placement="bottom"
+        offset={8}
+        triggerMode="hover"
+        openDelay={200}
+        closeDelay={500}
+      >
+        <PopoverTrigger asChild>
+          <button className="px-4 py-2 bg-primary-500 text-white rounded">
+            Hover Me
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md">
+          <div>
+            <h3 className="font-bold mb-2">Hover Triggered Popover</h3>
+            <p>
+              This popover opens on hover after a 200ms delay and closes after a 500ms delay.
+            </p>
+          </div>
+        </PopoverContent>
+      </Popover>
+
       <Popover
         placement="bottom"
         offset={12}
@@ -150,6 +173,66 @@ export default function PopoverExample() {
           </div>
         </PopoverContent>
       </Popover>
+
+      {/* New Features Example */}
+      <div>
+        <h2>New Features</h2>
+        
+        {/* Portal Target */}
+        <div id="popover-portal" style={{ position: "relative", zIndex: 9999 }}></div>
+        <Popover portalTarget={document.getElementById("popover-portal")!}>
+          <PopoverTrigger asChild>
+            <button>Custom Portal</button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div>This popover is rendered in a custom portal target.</div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Auto-sizing */}
+        <Popover autoSize sameWidth>
+          <PopoverTrigger asChild>
+            <button>Auto-sized Popover</button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div>This popover automatically adjusts its size to match the trigger width.</div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Flip and Shift */}
+        <Popover flip shift>
+          <PopoverTrigger asChild>
+            <button>Flippable Popover</button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div>This popover will flip and shift to stay within the viewport.</div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Context Menu */}
+        <Popover triggerMode="context-menu">
+          <PopoverTrigger asChild>
+            <div className="bg-gray-900 p-4">
+              Right-click me for a context menu!
+            </div>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div>This is a context menu popover.</div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Touch Optimized */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="px-8 py-4 text-xl">
+              Touch-friendly Popover
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="text-xl p-6">
+            <div>This popover has larger tap targets and touch-friendly interactions.</div>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   );
 }
