@@ -38,7 +38,7 @@ export interface PopoverContextValue {
   animationDuration?: number;
   animationTiming?: string;
   // Accessibility
-  id?: string;
+  id: string;
   role?: string;
   'aria-label'?: string;
   // Focus management
@@ -46,6 +46,11 @@ export interface PopoverContextValue {
   returnFocus?: boolean;
   // Virtual element
   virtualRef?: VirtualElement;
+  // Nesting support
+  parentId?: string;
+  parentContext?: PopoverContextValue | null;
+  parentChain: string[];
+  nested: boolean;
 }
 
 export interface PopoverProps {

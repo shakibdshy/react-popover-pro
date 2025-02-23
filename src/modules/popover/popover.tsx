@@ -7,6 +7,7 @@ import {
   PopoverTriggerProps,
   PopoverContentProps,
   Position,
+  PopoverContextValue,
 } from "./popover-types";
 import { PopoverProvider, usePopoverContext } from "./popover-context";
 import { usePopoverPosition } from "./use-popover-position";
@@ -22,7 +23,7 @@ export const Popover: React.FC<PopoverProps> = ({
   open,
   onOpenChange,
   // Accessibility
-  id,
+  id = `popover-${Math.random().toString(36).substr(2, 9)}`,
   role = "dialog",
   "aria-label": ariaLabel,
   // Animation
@@ -40,6 +41,20 @@ export const Popover: React.FC<PopoverProps> = ({
   autoFocus = true,
   returnFocus = true,
 }) => {
+  const parentContext = usePopoverContext(false);
+  const nested = !!parentContext;
+
+  // Get the chain of parent IDs for proper nesting
+  const parentChain = useMemo(() => {
+    const chain: string[] = [];
+    let currentContext: PopoverContextValue | null = parentContext;
+    while (currentContext) {
+      chain.push(currentContext.id);
+      currentContext = currentContext.parentContext || null;
+    }
+    return chain;
+  }, [parentContext]);
+
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
   const isControlled = open !== undefined;
   const isOpen = isControlled ? open : uncontrolledOpen;
@@ -149,6 +164,20 @@ export const Popover: React.FC<PopoverProps> = ({
     };
   }, [isOpen, handleOpenChange]);
 
+  // Close this popover when any parent in the chain closes
+  useEffect(() => {
+    if (!nested || !isOpen) return;
+
+    const shouldClose = parentChain.some((parentId) => {
+      const parent = document.getElementById(parentId);
+      return !parent || getComputedStyle(parent).display === 'none';
+    });
+
+    if (shouldClose) {
+      handleOpenChange(false);
+    }
+  }, [nested, isOpen, parentChain, handleOpenChange]);
+
   const contextValue = useMemo(
     () => ({
       isOpen,
@@ -171,6 +200,11 @@ export const Popover: React.FC<PopoverProps> = ({
       returnFocus,
       // Virtual element
       virtualRef,
+      // Nesting support
+      parentId: nested ? parentContext.id : undefined,
+      parentContext: parentContext,
+      parentChain,
+      nested,
     }),
     [
       isOpen,
@@ -186,6 +220,9 @@ export const Popover: React.FC<PopoverProps> = ({
       autoFocus,
       returnFocus,
       virtualRef,
+      nested,
+      parentContext,
+      parentChain,
     ]
   );
 
@@ -194,18 +231,23 @@ export const Popover: React.FC<PopoverProps> = ({
 
 export const PopoverTrigger = React.memo<PopoverTriggerProps>(
   ({ children, asChild = false, disabled = false }) => {
-    const { triggerRef, setIsOpen, isOpen } = usePopoverContext();
+    const context = usePopoverContext();
+    if (!context) {
+      throw new Error('PopoverTrigger must be used within a Popover');
+    }
 
-    const handleClick = () => {
+    const handleClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (disabled) return;
-      setIsOpen(!isOpen);
+      context.setIsOpen(!context.isOpen);
     };
 
     if (asChild && React.isValidElement(children)) {
       const childProps = {
-        ref: triggerRef,
+        ref: context.triggerRef,
         onClick: handleClick,
-        "aria-expanded": isOpen,
+        "aria-expanded": context.isOpen,
         "aria-haspopup": true,
         disabled,
       };
@@ -214,9 +256,9 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
 
     return (
       <div
-        ref={triggerRef}
+        ref={context.triggerRef}
         onClick={handleClick}
-        aria-expanded={isOpen}
+        aria-expanded={context.isOpen}
         aria-haspopup={true}
       >
         {children}
@@ -240,6 +282,11 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     role: roleOverride,
     "aria-label": ariaLabelOverride,
   }) => {
+    const context = usePopoverContext();
+    if (!context) {
+      throw new Error('PopoverContent must be used within a Popover');
+    }
+
     const {
       isOpen,
       contentRef,
@@ -252,7 +299,8 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       animationTiming,
       autoFocus,
       returnFocus,
-    } = usePopoverContext();
+      parentChain,
+    } = context;
 
     useFocusManagement(isOpen, contentRef, autoFocus, returnFocus);
 
@@ -270,40 +318,43 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       left: position.x,
       margin: 0,
       transform: "none",
-      zIndex: 1000,
+      zIndex: 1000 + parentChain.length,
       ...(animateOverride ?? animate ? animationStyles : {}),
     };
 
+    const handleContentClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const contentProps = {
+      ref: contentRef,
+      style: defaultStyles,
+      className,
+      id,
+      role: roleOverride || role,
+      "aria-label": ariaLabelOverride || ariaLabel,
+      tabIndex: -1,
+      onClick: handleContentClick,
+      onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
+      onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
+    };
+
     if (asChild && React.isValidElement(children)) {
-      const childProps = {
-        ref: contentRef,
-        style: {
-          ...defaultStyles,
-          ...children.props.style,
-        },
-        id,
-        role: roleOverride || role,
-        "aria-label": ariaLabelOverride || ariaLabel,
-        tabIndex: -1,
-      };
       return createPortal(
-        React.cloneElement(children, childProps),
+        React.cloneElement(children, {
+          ...contentProps,
+          style: {
+            ...defaultStyles,
+            ...children.props.style,
+          },
+        }),
         document.body
       );
     }
 
     return createPortal(
-      <div
-        ref={contentRef}
-        style={defaultStyles}
-        className={className}
-        id={id}
-        role={roleOverride || role}
-        aria-label={ariaLabelOverride || ariaLabel}
-        tabIndex={-1}
-      >
-        {children}
-      </div>,
+      <div {...contentProps}>{children}</div>,
       document.body
     );
   }
