@@ -3,6 +3,23 @@
 import { RefObject, useCallback } from 'react';
 import { Position, PopoverPlacement } from './popover-types';
 
+const getOppositePosition = (placement: PopoverPlacement): PopoverPlacement => {
+  switch (placement) {
+    case 'top': return 'bottom';
+    case 'top-start': return 'bottom-start';
+    case 'top-end': return 'bottom-end';
+    case 'bottom': return 'top';
+    case 'bottom-start': return 'top-start';
+    case 'bottom-end': return 'top-end';
+    case 'left': return 'right';
+    case 'left-start': return 'right-start';
+    case 'left-end': return 'right-end';
+    case 'right': return 'left';
+    case 'right-start': return 'left-start';
+    case 'right-end': return 'left-end';
+  }
+};
+
 export const usePopoverPosition = (
   triggerRef: RefObject<HTMLDivElement | null>,
   contentRef: RefObject<HTMLDivElement | null>,
@@ -16,14 +33,41 @@ export const usePopoverPosition = (
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const contentRect = contentRef.current.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
 
     let x = 0;
     let y = 0;
+    let actualPlacement = placement;
+
+    // Check if we need to flip the placement
+    const spaceAbove = triggerRect.top;
+    const spaceBelow = viewportHeight - triggerRect.bottom;
+    const spaceLeft = triggerRect.left;
+    const spaceRight = viewportWidth - triggerRect.right;
+
+    if (placement.startsWith('bottom') && spaceBelow < contentRect.height + offset) {
+      if (spaceAbove > contentRect.height + offset) {
+        actualPlacement = getOppositePosition(placement);
+      }
+    } else if (placement.startsWith('top') && spaceAbove < contentRect.height + offset) {
+      if (spaceBelow > contentRect.height + offset) {
+        actualPlacement = getOppositePosition(placement);
+      }
+    } else if (placement.startsWith('left') && spaceLeft < contentRect.width + offset) {
+      if (spaceRight > contentRect.width + offset) {
+        actualPlacement = getOppositePosition(placement);
+      }
+    } else if (placement.startsWith('right') && spaceRight < contentRect.width + offset) {
+      if (spaceLeft > contentRect.width + offset) {
+        actualPlacement = getOppositePosition(placement);
+      }
+    }
 
     // Base positions for each placement
-    switch (placement) {
+    switch (actualPlacement) {
       case 'top':
       case 'top-start':
       case 'top-end':
@@ -47,7 +91,7 @@ export const usePopoverPosition = (
     }
 
     // Horizontal alignment
-    switch (placement) {
+    switch (actualPlacement) {
       case 'top':
       case 'bottom':
         x = triggerRect.left + scrollX + (triggerRect.width - contentRect.width) / 2;
@@ -75,9 +119,6 @@ export const usePopoverPosition = (
     }
 
     // Ensure popover stays within viewport
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
     x = Math.max(scrollX + 10, Math.min(x, scrollX + viewportWidth - contentRect.width - 10));
     y = Math.max(scrollY + 10, Math.min(y, scrollY + viewportHeight - contentRect.height - 10));
 
