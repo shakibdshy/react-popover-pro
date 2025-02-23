@@ -1,7 +1,9 @@
 'use client';
 
-import { RefObject, useCallback } from 'react';
-import { Position, PopoverPlacement } from './popover-types';
+import { RefObject, useCallback, useRef } from 'react';
+import { Position, PopoverPlacement, VirtualElement } from './popover-types';
+
+type ElementRef = RefObject<HTMLDivElement | null> | { current: VirtualElement };
 
 const getOppositePosition = (placement: PopoverPlacement): PopoverPlacement => {
   switch (placement) {
@@ -21,14 +23,16 @@ const getOppositePosition = (placement: PopoverPlacement): PopoverPlacement => {
 };
 
 export const usePopoverPosition = (
-  triggerRef: RefObject<HTMLDivElement | null>,
+  triggerRef: ElementRef,
   contentRef: RefObject<HTMLDivElement | null>,
   placement: PopoverPlacement,
   offset: number = 8
 ) => {
+  const lastPosition = useRef<Position>({ x: 0, y: 0 });
+
   const calculatePosition = useCallback((): Position => {
     if (!triggerRef.current || !contentRef.current) {
-      return { x: 0, y: 0 };
+      return lastPosition.current;
     }
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
@@ -122,7 +126,18 @@ export const usePopoverPosition = (
     x = Math.max(scrollX + 10, Math.min(x, scrollX + viewportWidth - contentRect.width - 10));
     y = Math.max(scrollY + 10, Math.min(y, scrollY + viewportHeight - contentRect.height - 10));
 
-    return { x, y };
+    const newPosition = { x, y };
+
+    // Only update if position actually changed
+    if (
+      Math.abs(newPosition.x - lastPosition.current.x) > 1 ||
+      Math.abs(newPosition.y - lastPosition.current.y) > 1
+    ) {
+      lastPosition.current = newPosition;
+      return newPosition;
+    }
+
+    return lastPosition.current;
   }, [triggerRef, contentRef, placement, offset]);
 
   return calculatePosition;

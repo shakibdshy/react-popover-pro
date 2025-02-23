@@ -19,6 +19,12 @@ export type PopoverPlacement =
   | 'right-start'
   | 'right-end';
 
+export interface VirtualElement {
+  getBoundingClientRect: () => DOMRect;
+}
+
+export type Middleware = (position: Position) => Position;
+
 export interface PopoverContextValue {
   isOpen: boolean;
   triggerRef: RefObject<HTMLDivElement | null>;
@@ -27,6 +33,19 @@ export interface PopoverContextValue {
   placement: PopoverPlacement;
   setIsOpen: (value: boolean) => void;
   setPosition: (position: Position) => void;
+  // Animation
+  animate?: boolean;
+  animationDuration?: number;
+  animationTiming?: string;
+  // Accessibility
+  id?: string;
+  role?: string;
+  'aria-label'?: string;
+  // Focus management
+  autoFocus?: boolean;
+  returnFocus?: boolean;
+  // Virtual element
+  virtualRef?: VirtualElement;
 }
 
 export interface PopoverProps {
@@ -34,16 +53,43 @@ export interface PopoverProps {
   placement?: PopoverPlacement;
   offset?: number;
   defaultOpen?: boolean;
+  open?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  // Accessibility
+  id?: string;
+  role?: string;
+  'aria-label'?: string;
+  // Animation
+  animate?: boolean;
+  animationDuration?: number;
+  animationTiming?: string;
+  // Events
+  onOpen?: () => void;
+  onClose?: () => void;
+  onPositionChange?: (position: Position) => void;
+  // Advanced features
+  virtualRef?: VirtualElement;
+  middleware?: Middleware[];
+  // Focus management
+  autoFocus?: boolean;
+  returnFocus?: boolean;
 }
 
 export interface PopoverTriggerProps {
   children: React.ReactElement<{ onClick?: (e: React.MouseEvent) => void }>;
   asChild?: boolean;
+  disabled?: boolean;
 }
 
 export interface PopoverContentProps {
   children: React.ReactElement<{ style?: React.CSSProperties }>;
   className?: string;
   asChild?: boolean;
+  // Animation overrides
+  animate?: boolean;
+  animationDuration?: number;
+  animationTiming?: string;
+  // Accessibility
+  role?: string;
+  'aria-label'?: string;
 } 

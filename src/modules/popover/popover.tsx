@@ -1,41 +1,136 @@
-'use client';
+"use client";
 
-import React, { useRef, useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   PopoverProps,
   PopoverTriggerProps,
   PopoverContentProps,
   Position,
-} from './popover-types';
-import { PopoverProvider, usePopoverContext } from './popover-context';
-import { usePopoverPosition } from './use-popover-position';
+} from "./popover-types";
+import { PopoverProvider, usePopoverContext } from "./popover-context";
+import { usePopoverPosition } from "./use-popover-position";
+import { useFocusManagement } from "./use-focus-management";
+import { useAnimation } from "./use-animation";
+import { applyMiddleware } from "./middleware";
 
 export const Popover: React.FC<PopoverProps> = ({
   children,
-  placement = 'bottom',
+  placement = "bottom",
   offset = 8,
   defaultOpen = false,
+  open,
   onOpenChange,
+  // Accessibility
+  id,
+  role = "dialog",
+  "aria-label": ariaLabel,
+  // Animation
+  animate = true,
+  animationDuration = 200,
+  animationTiming = "ease",
+  // Events
+  onOpen,
+  onClose,
+  onPositionChange,
+  // Advanced features
+  virtualRef,
+  middleware = [],
+  // Focus management
+  autoFocus = true,
+  returnFocus = true,
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : uncontrolledOpen;
+
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const triggerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const calculatePosition = usePopoverPosition(triggerRef, contentRef, placement, offset);
+  const triggerElement = useMemo(
+    () => (virtualRef ? { current: virtualRef } : triggerRef),
+    [virtualRef]
+  );
 
+  const calculatePosition = usePopoverPosition(
+    triggerElement,
+    contentRef,
+    placement,
+    offset
+  );
+
+  const updatePosition = useCallback(() => {
+    const newPosition = calculatePosition();
+    const finalPosition = applyMiddleware(newPosition, middleware);
+    setPosition(finalPosition);
+    onPositionChange?.(finalPosition);
+  }, [calculatePosition, middleware, onPositionChange]);
+
+  const handleOpenChange = useCallback((newIsOpen: boolean) => {
+    if (!isControlled) {
+      setUncontrolledOpen(newIsOpen);
+    }
+    onOpenChange?.(newIsOpen);
+    if (newIsOpen) {
+      onOpen?.();
+    } else {
+      onClose?.();
+    }
+  }, [isControlled, onOpenChange, onOpen, onClose]);
+
+  // Initial position and dependency changes
   useEffect(() => {
     if (isOpen) {
-      const newPosition = calculatePosition();
-      setPosition(newPosition);
+      requestAnimationFrame(updatePosition);
     }
-  }, [isOpen, calculatePosition]);
+  }, [isOpen, placement, offset, updatePosition]);
 
+  // Scroll and resize handlers
   useEffect(() => {
-    onOpenChange?.(isOpen);
-  }, [isOpen, onOpenChange]);
+    if (!isOpen) return;
 
+    let rafId: number;
+    let lastUpdate = 0;
+    const THROTTLE_MS = 16; // Approximately 60fps
+
+    const handlePositionUpdate = () => {
+      const now = Date.now();
+      if (now - lastUpdate >= THROTTLE_MS) {
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          updatePosition();
+          lastUpdate = now;
+        });
+      }
+    };
+
+    // Initial position update
+    handlePositionUpdate();
+
+    window.addEventListener("scroll", handlePositionUpdate, { passive: true });
+    window.addEventListener("resize", handlePositionUpdate, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handlePositionUpdate);
+      window.removeEventListener("resize", handlePositionUpdate);
+      cancelAnimationFrame(rafId);
+    };
+  }, [isOpen, updatePosition]);
+
+  // Keyboard handling
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        handleOpenChange(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Click outside handling
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -43,118 +138,175 @@ export const Popover: React.FC<PopoverProps> = ({
         !triggerRef.current?.contains(event.target as Node) &&
         !contentRef.current?.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        handleOpenChange(false);
       }
     };
 
-    const handleScroll = () => {
-      if (isOpen) {
-        const newPosition = calculatePosition();
-        setPosition(newPosition);
-      }
-    };
-
-    const handleResize = () => {
-      if (isOpen) {
-        const newPosition = calculatePosition();
-        setPosition(newPosition);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleResize);
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleResize);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, calculatePosition]);
+  }, [isOpen, handleOpenChange]);
 
-  return (
-    <PopoverProvider
-      value={{
-        isOpen,
-        triggerRef,
-        contentRef,
-        position,
-        placement,
-        setIsOpen,
-        setPosition,
-      }}
-    >
-      {children}
-    </PopoverProvider>
+  const contextValue = useMemo(
+    () => ({
+      isOpen,
+      triggerRef,
+      contentRef,
+      position,
+      placement,
+      setIsOpen: handleOpenChange,
+      setPosition,
+      // Animation
+      animate,
+      animationDuration,
+      animationTiming,
+      // Accessibility
+      id,
+      role,
+      "aria-label": ariaLabel,
+      // Focus management
+      autoFocus,
+      returnFocus,
+      // Virtual element
+      virtualRef,
+    }),
+    [
+      isOpen,
+      position,
+      placement,
+      handleOpenChange,
+      animate,
+      animationDuration,
+      animationTiming,
+      id,
+      role,
+      ariaLabel,
+      autoFocus,
+      returnFocus,
+      virtualRef,
+    ]
   );
+
+  return <PopoverProvider value={contextValue}>{children}</PopoverProvider>;
 };
 
-export const PopoverTrigger: React.FC<PopoverTriggerProps> = ({
-  children,
-  asChild = false,
-}) => {
-  const { triggerRef, setIsOpen, isOpen } = usePopoverContext();
+export const PopoverTrigger = React.memo<PopoverTriggerProps>(
+  ({ children, asChild = false, disabled = false }) => {
+    const { triggerRef, setIsOpen, isOpen } = usePopoverContext();
 
-  const handleClick = () => {
-    setIsOpen(!isOpen);
-  };
-
-  if (asChild && React.isValidElement(children)) {
-    const childProps = {
-      ...children.props,
-      ref: triggerRef,
-      onClick: (e: React.MouseEvent) => {
-        handleClick();
-        children.props.onClick?.(e);
-      },
+    const handleClick = () => {
+      if (disabled) return;
+      setIsOpen(!isOpen);
     };
-    return React.cloneElement(children, childProps);
+
+    if (asChild && React.isValidElement(children)) {
+      const childProps = {
+        ref: triggerRef,
+        onClick: handleClick,
+        "aria-expanded": isOpen,
+        "aria-haspopup": true,
+        disabled,
+      };
+      return React.cloneElement(children, childProps);
+    }
+
+    return (
+      <div
+        ref={triggerRef}
+        onClick={handleClick}
+        aria-expanded={isOpen}
+        aria-haspopup={true}
+      >
+        {children}
+      </div>
+    );
   }
+);
 
-  return (
-    <div ref={triggerRef} onClick={handleClick}>
-      {children}
-    </div>
-  );
-};
+PopoverTrigger.displayName = "PopoverTrigger";
 
-export const PopoverContent: React.FC<PopoverContentProps> = ({
-  children,
-  className = '',
-  asChild = false,
-}) => {
-  const { isOpen, contentRef, position } = usePopoverContext();
+export const PopoverContent = React.memo<PopoverContentProps>(
+  ({
+    children,
+    className = "",
+    asChild = false,
+    // Animation overrides
+    animate: animateOverride,
+    animationDuration: durationOverride,
+    animationTiming: timingOverride,
+    // Accessibility
+    role: roleOverride,
+    "aria-label": ariaLabelOverride,
+  }) => {
+    const {
+      isOpen,
+      contentRef,
+      position,
+      id,
+      role,
+      "aria-label": ariaLabel,
+      animate,
+      animationDuration,
+      animationTiming,
+      autoFocus,
+      returnFocus,
+    } = usePopoverContext();
 
-  if (!isOpen) return null;
+    useFocusManagement(isOpen, contentRef, autoFocus, returnFocus);
 
-  const defaultStyles = {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-    zIndex: 1000,
-  };
+    const { shouldRender, styles: animationStyles } = useAnimation(
+      isOpen,
+      durationOverride || animationDuration,
+      timingOverride || animationTiming
+    );
 
-  if (asChild && React.isValidElement(children)) {
-    const childProps = {
-      ...children.props,
-      ref: contentRef,
-      style: {
-        ...defaultStyles,
-        ...children.props.style,
-      },
+    if (!shouldRender) return null;
+
+    const defaultStyles = {
+      position: "fixed" as const,
+      top: position.y,
+      left: position.x,
+      margin: 0,
+      transform: "none",
+      zIndex: 1000,
+      ...(animateOverride ?? animate ? animationStyles : {}),
     };
-    return createPortal(React.cloneElement(children, childProps), document.body);
-  }
 
-  return createPortal(
-    <div
-      ref={contentRef}
-      style={defaultStyles}
-      className={className}
-    >
-      {children}
-    </div>,
-    document.body
-  );
-}; 
+    if (asChild && React.isValidElement(children)) {
+      const childProps = {
+        ref: contentRef,
+        style: {
+          ...defaultStyles,
+          ...children.props.style,
+        },
+        id,
+        role: roleOverride || role,
+        "aria-label": ariaLabelOverride || ariaLabel,
+        tabIndex: -1,
+      };
+      return createPortal(
+        React.cloneElement(children, childProps),
+        document.body
+      );
+    }
+
+    return createPortal(
+      <div
+        ref={contentRef}
+        style={defaultStyles}
+        className={className}
+        id={id}
+        role={roleOverride || role}
+        aria-label={ariaLabelOverride || ariaLabel}
+        tabIndex={-1}
+      >
+        {children}
+      </div>,
+      document.body
+    );
+  }
+);
+
+PopoverContent.displayName = "PopoverContent";
