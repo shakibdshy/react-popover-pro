@@ -2,6 +2,8 @@
 
 import { Position } from './popover-types';
 
+export type Middleware = (position: Position) => Position;
+
 export const shift = (padding = 8): ((position: Position) => Position) => {
   return (position: Position) => {
     const viewportWidth = window.innerWidth;

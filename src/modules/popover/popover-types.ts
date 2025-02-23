@@ -59,6 +59,8 @@ export interface PopoverContextValue {
   onKeyDown?: (e: KeyboardEvent) => void;
   // Trigger mode
   triggerMode: TriggerMode;
+  // Add usePortal property
+  usePortal: boolean;
 }
 
 export interface PopoverProps {
@@ -102,6 +104,8 @@ export interface PopoverProps {
   preventOverflow?: boolean;
   lazyMount?: boolean;
   keepMounted?: boolean;
+  // Portal
+  usePortal?: boolean;
 }
 
 export interface PopoverTriggerProps {
