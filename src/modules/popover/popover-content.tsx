@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { PopoverContentProps } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
@@ -28,7 +28,6 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const {
       isOpen,
       contentRef,
-      position,
       id,
       role,
       "aria-label": ariaLabel,
@@ -39,8 +38,11 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       returnFocus,
       parentChain,
       usePortal,
+      position,
+      setPosition,
+      triggerRef
     } = context;
-
+    
     useFocusManagement(isOpen, contentRef, autoFocus, returnFocus);
 
     const { shouldRender, styles: animationStyles } = useAnimation(
@@ -49,14 +51,46 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       timingOverride || animationTiming
     );
 
+    // Update position when scrolling or resizing
+    useEffect(() => {
+      if (!isOpen || !triggerRef.current) return;
+      
+      // Store initial position relative to document
+      const initialPosition = { ...position };
+      const initialScroll = { x: window.scrollX, y: window.scrollY };
+      
+      const updatePosition = () => {
+        if (!triggerRef.current) return;
+        
+        // Calculate scroll delta
+        const scrollDeltaX = window.scrollX - initialScroll.x;
+        const scrollDeltaY = window.scrollY - initialScroll.y;
+        
+        // Update position to keep it relative to the initial position
+        setPosition({
+          x: initialPosition.x + scrollDeltaX,
+          y: initialPosition.y + scrollDeltaY
+        });
+      };
+      
+      // Set up event listeners for scroll and resize
+      window.addEventListener('scroll', updatePosition, { passive: true });
+      window.addEventListener('resize', updatePosition, { passive: true });
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition);
+        window.removeEventListener('resize', updatePosition);
+      };
+    }, [isOpen, triggerRef, position, setPosition]);
+
+    // Don't render until animation says we should
     if (!shouldRender) return null;
 
     const defaultStyles = {
-      position: "fixed" as const,
+      position: "absolute" as const,
       top: position.y,
       left: position.x,
       margin: 0,
-      transform: "none",
       zIndex: 1000 + parentChain.length,
       ...(animateOverride ?? animate ? animationStyles : {}),
     };
