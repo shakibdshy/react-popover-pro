@@ -77,32 +77,76 @@ export const useAnimation = (
     const isVertical = placement.startsWith('top') || placement.startsWith('bottom');
     const isStart = placement.startsWith('top') || placement.startsWith('left');
     
-    // Distance for shift effects
-    const distance = 10;
+    // Distance for shift effects - varies based on intensity
+    const getDistance = (intensity: 'subtle' | 'normal' | 'extreme') => {
+      switch (intensity) {
+        case 'subtle': return 5;
+        case 'normal': return 10;
+        case 'extreme': return 20;
+      }
+    };
+
+    // Scale factor - varies based on intensity
+    const getScaleFactor = (intensity: 'subtle' | 'normal' | 'extreme') => {
+      switch (intensity) {
+        case 'subtle': return 0.98;
+        case 'normal': return 0.95;
+        case 'extreme': return 0.85;
+      }
+    };
+
+    // Rotation angle - varies based on intensity
+    const getRotationAngle = (intensity: 'subtle' | 'normal' | 'extreme') => {
+      switch (intensity) {
+        case 'subtle': return 3;
+        case 'normal': return 10;
+        case 'extreme': return 20;
+      }
+    };
+    
     const direction = isStart ? -1 : 1;
     const axis = isVertical ? 'Y' : 'X';
     
-    switch (effect) {
+    // Determine the intensity based on the effect name
+    const getIntensity = (effectName: string): 'subtle' | 'normal' | 'extreme' => {
+      if (effectName.endsWith('-subtle')) return 'subtle';
+      if (effectName.endsWith('-extreme')) return 'extreme';
+      return 'normal';
+    };
+    
+    // Extract the base effect name without intensity suffix
+    const baseEffect = effect.replace(/-subtle$/, '').replace(/-extreme$/, '');
+    const intensity = getIntensity(effect);
+    
+    switch (baseEffect) {
       case 'scale':
+        const scaleFactor = getScaleFactor(intensity);
         return {
-          start: 'scale(0.95)',
+          start: `scale(${scaleFactor})`,
           end: 'scale(1)',
         };
+        
       case 'shift-away':
+        const awayDistance = getDistance(intensity);
         return {
           start: `translate${axis}(0)`,
-          end: `translate${axis}(${direction * distance}px)`,
+          end: `translate${axis}(${direction * awayDistance}px)`,
         };
+        
       case 'shift-toward':
+        const towardDistance = getDistance(intensity);
         return {
-          start: `translate${axis}(${-direction * distance}px)`,
+          start: `translate${axis}(${-direction * towardDistance}px)`,
           end: 'translate(0)',
         };
+        
       case 'perspective':
+        const rotationAngle = getRotationAngle(intensity);
         return {
-          start: `perspective(1000px) rotate${isVertical ? 'X' : 'Y'}(${direction * 10}deg)`,
+          start: `perspective(1000px) rotate${isVertical ? 'X' : 'Y'}(${direction * rotationAngle}deg)`,
           end: 'perspective(1000px) rotate(0)',
         };
+        
       case 'fade':
       default:
         return {

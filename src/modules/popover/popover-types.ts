@@ -21,7 +21,20 @@ export type PopoverPlacement =
 
 export type TriggerMode = 'click' | 'hover' | 'context-menu';
 
-export type AnimationEffect = 'fade' | 'scale' | 'shift-away' | 'shift-toward' | 'perspective';
+export type AnimationEffect = 
+  | 'fade'
+  | 'scale'
+  | 'scale-subtle'
+  | 'scale-extreme'
+  | 'shift-away'
+  | 'shift-away-subtle'
+  | 'shift-away-extreme'
+  | 'shift-toward'
+  | 'shift-toward-subtle'
+  | 'shift-toward-extreme'
+  | 'perspective'
+  | 'perspective-subtle'
+  | 'perspective-extreme';
 
 export interface VirtualElement {
   getBoundingClientRect: () => DOMRect;
