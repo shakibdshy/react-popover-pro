@@ -3,6 +3,8 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@/modules/popover";
 import { shift, offset } from "@/modules/popover/middleware";
 import PopoverFeaturesExample from "./popover-features-example";
+import TooltipExample from "./tooltip-example";
+import TooltipArrowTest from "./tooltip-arrow-test";
 
 export default function PopoverExample() {
   return (
@@ -32,7 +34,7 @@ export default function PopoverExample() {
                 <div className="space-y-4">
                   <h3 className="font-bold">Level 2 Menu</h3>
                   
-                  <Popover placement="bottom" offset={8}>
+                  <Popover placement="right" offset={8}>
                     <PopoverTrigger asChild>
                       <button className="w-full px-4 py-2 text-left hover:bg-primary-700 rounded">
                         Level 3 →
@@ -42,7 +44,7 @@ export default function PopoverExample() {
                       <div className="space-y-4">
                         <h3 className="font-bold">Level 3 Menu</h3>
                         
-                        <Popover placement="bottom" offset={8}>
+                        <Popover placement="right" offset={8}>
                           <PopoverTrigger asChild>
                             <button className="w-full px-4 py-2 text-left hover:bg-primary-700 rounded">
                               Level 4 →
@@ -141,40 +143,6 @@ export default function PopoverExample() {
         </PopoverContent>
       </Popover>
 
-      {/* Nested Popover Example */}
-      <Popover
-        placement="bottom"
-        offset={8}
-        animate={true}
-        animationDuration={200}
-        animationTiming="ease-out"
-      >
-        <PopoverTrigger asChild>
-          <button>Open Nested Menu</button>
-        </PopoverTrigger>
-        <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md">
-          <div className="space-y-4">
-            <h3>Main Menu</h3>
-            <div>Some content here</div>
-            
-            {/* Nested Popover */}
-            <Popover placement="right" offset={8}>
-              <PopoverTrigger asChild>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded">
-                  Open Submenu
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md">
-                <div>
-                  <h4>Submenu Content</h4>
-                  <p>This is a nested popover!</p>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </PopoverContent>
-      </Popover>
-
       {/* New Features Example */}
       <div>
         <h2>New Features</h2>
@@ -237,6 +205,9 @@ export default function PopoverExample() {
 
       {/* Popover Features Example */}
       <PopoverFeaturesExample />
+
+      <TooltipExample />
+      <TooltipArrowTest />
     </div>
   );
 }
