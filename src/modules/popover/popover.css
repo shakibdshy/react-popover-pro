@@ -1,0 +1,155 @@
+/* Base popover styles */
+.popover-content {
+  position: relative;
+  background-color: var(--color-vanilla-gray-50, #ffffff);
+  color: var(--color-dark-900, #1a202c);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-gray-200, #e2e8f0);
+  font-size: 0.875rem;
+  max-width: 400px;
+  width: max-content;
+  z-index: 1050;
+}
+
+/* Dark mode styles */
+[data-theme="dark"] .popover-content,
+.dark .popover-content {
+  background-color: var(--color-dark-800, #1e293b);
+  color: var(--color-gray-100, #f1f5f9);
+  border-color: var(--color-dark-700, #334155);
+}
+
+/* Arrow base styling */
+.popover-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  transform: rotate(45deg);
+  z-index: -1;
+  /* Ensure the arrow has the same background as the popover */
+  background-color: inherit;
+}
+
+/* Arrow positioning based on placement */
+.popover-arrow[data-placement^="top"] {
+  bottom: -7px;
+  left: calc(50% - 6px);
+  border-right: 1px solid var(--color-gray-200, #e2e8f0);
+  border-bottom: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="top-start"] {
+  bottom: -7px;
+  left: 16px;
+  border-right: 1px solid var(--color-gray-200, #e2e8f0);
+  border-bottom: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="top-end"] {
+  bottom: -7px;
+  right: 16px;
+  left: auto;
+  border-right: 1px solid var(--color-gray-200, #e2e8f0);
+  border-bottom: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement^="bottom"] {
+  top: -7px;
+  left: calc(50% - 6px);
+  border-left: 1px solid var(--color-gray-200, #e2e8f0);
+  border-top: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="bottom-start"] {
+  top: -7px;
+  left: 16px;
+  border-left: 1px solid var(--color-gray-200, #e2e8f0);
+  border-top: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="bottom-end"] {
+  top: -7px;
+  right: 16px;
+  left: auto;
+  border-left: 1px solid var(--color-gray-200, #e2e8f0);
+  border-top: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement^="left"] {
+  right: -7px;
+  top: calc(50% - 6px);
+  border-top: 1px solid var(--color-gray-200, #e2e8f0);
+  border-right: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="left-start"] {
+  right: -7px;
+  top: 16px;
+  border-top: 1px solid var(--color-gray-200, #e2e8f0);
+  border-right: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="left-end"] {
+  right: -7px;
+  bottom: 16px;
+  top: auto;
+  border-top: 1px solid var(--color-gray-200, #e2e8f0);
+  border-right: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement^="right"] {
+  left: -7px;
+  top: calc(50% - 6px);
+  border-bottom: 1px solid var(--color-gray-200, #e2e8f0);
+  border-left: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="right-start"] {
+  left: -7px;
+  top: 16px;
+  border-bottom: 1px solid var(--color-gray-200, #e2e8f0);
+  border-left: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+.popover-arrow[data-placement="right-end"] {
+  left: -7px;
+  bottom: 16px;
+  top: auto;
+  border-bottom: 1px solid var(--color-gray-200, #e2e8f0);
+  border-left: 1px solid var(--color-gray-200, #e2e8f0);
+}
+
+/* Dark mode arrow border colors */
+[data-theme="dark"] .popover-arrow,
+.dark .popover-arrow {
+  border-color: var(--color-dark-700, #334155);
+}
+
+/* Variants */
+.popover-primary .popover-content {
+  background-color: var(--color-primary-50, #eff6ff);
+  border-color: var(--color-primary-200, #bfdbfe);
+}
+
+.popover-info .popover-content {
+  background-color: var(--color-info-50, #ecfeff);
+  border-color: var(--color-info-200, #a5f3fc);
+}
+
+.popover-success .popover-content {
+  background-color: var(--color-success-50, #f0fdf4);
+  border-color: var(--color-success-200, #bbf7d0);
+}
+
+.popover-warning .popover-content {
+  background-color: var(--color-warning-50, #fffbeb);
+  border-color: var(--color-warning-200, #fde68a);
+}
+
+.popover-danger .popover-content {
+  background-color: var(--color-danger-50, #fef2f2);
+  border-color: var(--color-danger-200, #fecaca);
+} 

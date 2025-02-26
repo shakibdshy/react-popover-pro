@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { PopoverContentProps } from "./popover-types";
+import { PopoverContentProps, PopoverPlacement } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
 import { useFocusManagement } from "./use-focus-management";
 import { useAnimation } from "./use-animation";
+import "./popover.css";
 
 export const PopoverContent = React.memo<PopoverContentProps>(
   ({
@@ -19,6 +20,10 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     // Accessibility
     role: roleOverride,
     "aria-label": ariaLabelOverride,
+    // Arrow
+    arrow = false,
+    // Variant
+    variant,
   }) => {
     const context = usePopoverContext();
     if (!context) {
@@ -40,13 +45,19 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       usePortal,
       position,
       triggerRef,
-      updatePosition
+      updatePosition,
+      placement,
+      arrow: contextArrow,
     } = context;
-    
+
     // Track if position has been calculated
     const [positionCalculated, setPositionCalculated] = useState(false);
     const initialPositionRef = useRef(false);
-    
+    const [actualPlacement, setActualPlacement] = useState(placement);
+
+    // Use arrow from props or context
+    const showArrow = arrow || contextArrow;
+
     useFocusManagement(isOpen, contentRef, autoFocus, returnFocus);
 
     const { shouldRender, styles: animationStyles } = useAnimation(
@@ -61,19 +72,28 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         initialPositionRef.current = false;
         return;
       }
-      
+
       // Calculate position immediately
       updatePosition();
-      
+
+      // Calculate position again after a small delay to ensure proper positioning
+      const immediateTimer = setTimeout(() => {
+        updatePosition();
+      }, 0);
+
       // Mark that we've done the initial position calculation
       initialPositionRef.current = true;
-      
+
       // Set a small timeout to ensure position calculation completes
       const timer = setTimeout(() => {
+        updatePosition(); // Calculate position one more time
         setPositionCalculated(true);
-      }, 10);
-      
-      return () => clearTimeout(timer);
+      }, 20);
+
+      return () => {
+        clearTimeout(immediateTimer);
+        clearTimeout(timer);
+      };
     }, [isOpen, triggerRef, updatePosition]);
 
     // Reset position calculated state when popover closes
@@ -87,34 +107,121 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     // Update position on resize and scroll
     useEffect(() => {
       if (!isOpen || !triggerRef.current) return;
-      
+
       const handleResize = () => {
         updatePosition();
       };
-      
+
       const handleScroll = () => {
         updatePosition();
       };
-      
-      window.addEventListener('resize', handleResize, { passive: true });
-      window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
-      
+
+      window.addEventListener("resize", handleResize, { passive: true });
+      window.addEventListener("scroll", handleScroll, {
+        passive: true,
+        capture: true,
+      });
+
       return () => {
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener("resize", handleResize);
+        window.removeEventListener("scroll", handleScroll);
       };
     }, [isOpen, triggerRef, updatePosition]);
 
+    // Detect actual placement based on position
+    useEffect(() => {
+      if (!isOpen || !triggerRef.current || !contentRef.current) return;
+
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const contentRect = contentRef.current.getBoundingClientRect();
+
+      // Determine actual placement based on the position relative to the trigger
+      let detectedPlacement = placement;
+
+      // Check if the content is above or below the trigger
+      if (contentRect.bottom < triggerRect.top) {
+        if (detectedPlacement.startsWith("bottom")) {
+          detectedPlacement = detectedPlacement.replace(
+            "bottom",
+            "top"
+          ) as PopoverPlacement;
+        }
+      } else if (contentRect.top > triggerRect.bottom) {
+        if (detectedPlacement.startsWith("top")) {
+          detectedPlacement = detectedPlacement.replace(
+            "top",
+            "bottom"
+          ) as PopoverPlacement;
+        }
+      }
+
+      // Check if the content is to the left or right of the trigger
+      if (contentRect.right < triggerRect.left) {
+        if (detectedPlacement.startsWith("right")) {
+          detectedPlacement = detectedPlacement.replace(
+            "right",
+            "left"
+          ) as PopoverPlacement;
+        }
+      } else if (contentRect.left > triggerRect.right) {
+        if (detectedPlacement.startsWith("left")) {
+          detectedPlacement = detectedPlacement.replace(
+            "left",
+            "right"
+          ) as PopoverPlacement;
+        }
+      }
+
+      if (detectedPlacement !== actualPlacement) {
+        setActualPlacement(detectedPlacement);
+      }
+    }, [isOpen, position, placement, triggerRef, contentRef, actualPlacement]);
+
     // Don't render until animation says we should and position is calculated
     // But if we've already done the initial position calculation, we can render
-    if (!shouldRender || (isOpen && !positionCalculated && !initialPositionRef.current)) return null;
+    if (
+      !shouldRender ||
+      (isOpen && !positionCalculated && !initialPositionRef.current)
+    )
+      return null;
+
+    // Apply a small correction to fix the slight positioning offset
+    const positionCorrection = {
+      x: position.x,
+      y: position.y,
+    };
+
+    // Apply minor position corrections based on placement to ensure perfect alignment
+    if (
+      actualPlacement.startsWith("top") ||
+      actualPlacement.startsWith("bottom")
+    ) {
+      // Center horizontally more precisely
+      if (
+        !actualPlacement.includes("-start") &&
+        !actualPlacement.includes("-end")
+      ) {
+        positionCorrection.x = Math.round(position.x);
+      }
+    } else if (
+      actualPlacement.startsWith("left") ||
+      actualPlacement.startsWith("right")
+    ) {
+      // Center vertically more precisely
+      if (
+        !actualPlacement.includes("-start") &&
+        !actualPlacement.includes("-end")
+      ) {
+        positionCorrection.y = Math.round(position.y);
+      }
+    }
 
     const defaultStyles = {
       position: "absolute" as const,
-      top: position.y,
-      left: position.x,
+      top: positionCorrection.y,
+      left: positionCorrection.x,
       margin: 0,
-      zIndex: 1000 + parentChain.length,
+      zIndex: 1050 + parentChain.length,
       ...(animateOverride ?? animate ? animationStyles : {}),
     };
 
@@ -123,10 +230,13 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       e.stopPropagation();
     };
 
+    // Determine variant class
+    const variantClass = variant ? `popover-${variant}` : "";
+
     const contentProps = {
       ref: contentRef,
       style: defaultStyles,
-      className,
+      className: `${className} ${variantClass}`,
       id,
       role: roleOverride || role,
       "aria-label": ariaLabelOverride || ariaLabel,
@@ -137,20 +247,36 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       "data-popover-content": "true",
     };
 
-    const content = asChild && React.isValidElement(children) ? (
-      React.cloneElement(children, {
-        ...contentProps,
-        style: {
-          ...defaultStyles,
-          ...children.props.style,
-        },
-      })
-    ) : (
-      <div {...contentProps}>{children}</div>
+    // Create the popover content with optional arrow
+    const popoverContent = (
+      <div className="popover-content">
+        {children}
+        {showArrow && (
+          <div className="popover-arrow" data-placement={actualPlacement} />
+        )}
+      </div>
     );
+
+    const content =
+      asChild && React.isValidElement(children) ? (
+        React.cloneElement(
+          children as React.ReactElement<{ style?: React.CSSProperties }>,
+          {
+            ...contentProps,
+            style: {
+              ...defaultStyles,
+              ...(
+                children as React.ReactElement<{ style?: React.CSSProperties }>
+              ).props.style,
+            },
+          }
+        )
+      ) : (
+        <div {...contentProps}>{popoverContent}</div>
+      );
 
     return usePortal ? createPortal(content, document.body) : content;
   }
 );
 
-PopoverContent.displayName = "PopoverContent"; 
+PopoverContent.displayName = "PopoverContent";

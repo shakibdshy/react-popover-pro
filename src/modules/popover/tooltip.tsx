@@ -59,6 +59,11 @@ export interface TooltipProps {
    * Custom background color for the tooltip
    */
   backgroundColor?: string;
+  /**
+   * Color variant of the tooltip
+   * @default undefined
+   */
+  variant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -70,18 +75,21 @@ export const Tooltip: React.FC<TooltipProps> = ({
   offset = 8,
   arrow = true,
   maxWidth = 'none',
-  className,
+  className = '',
   asChild = false,
   backgroundColor,
+  variant,
 }) => {
+  // Determine the variant class
+  const variantClass = variant ? `tooltip-${variant}` : '';
+  
   // Create the tooltip content
   const tooltipContent = (
     <div 
-      className={`tooltip-content ${className || ''}`}
+      className={`tooltip-content ${className} ${variantClass}`}
       style={{
         maxWidth: typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth,
-        backgroundColor: backgroundColor,
-        color: 'white',
+        ...(backgroundColor ? { backgroundColor, borderColor: backgroundColor } : {}),
       }}
       data-popover-content="true"
     >
@@ -89,9 +97,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
       {arrow && (
         <div 
           className="tooltip-arrow" 
-          style={{
+          style={backgroundColor ? {
             background: backgroundColor,
-          }}
+          } : {}}
           data-placement={placement}
         />
       )}
@@ -108,13 +116,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
       animate={true}
       animationDuration={150}
       animationTiming="ease"
+      arrow={arrow}
+      variant={variant}
     >
       <PopoverTrigger asChild={asChild}>
         {children}
       </PopoverTrigger>
       <PopoverContent
-        className="tooltip"
+        className={`tooltip ${variantClass}`}
         asChild={true}
+        arrow={arrow}
+        variant={variant}
       >
         {tooltipContent}
       </PopoverContent>

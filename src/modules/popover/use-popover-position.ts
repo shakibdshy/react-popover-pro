@@ -26,7 +26,7 @@ export const usePopoverPosition = (
   triggerRef: ElementRef,
   contentRef: RefObject<HTMLDivElement | null>,
   placement: PopoverPlacement,
-  offset: number = 8
+  offset: number = 12
 ) => {
   const lastPosition = useRef<Position>({ x: 0, y: 0 });
 
@@ -44,6 +44,10 @@ export const usePopoverPosition = (
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
+    // Add extra offset for arrow (6px for half the arrow size)
+    const arrowOffset = 6;
+    const totalOffset = offset + arrowOffset;
+
     let x = 0;
     let y = 0;
     let actualPlacement = placement;
@@ -54,20 +58,20 @@ export const usePopoverPosition = (
     const spaceLeft = triggerRect.left;
     const spaceRight = viewportWidth - triggerRect.right;
 
-    if (placement.startsWith('bottom') && spaceBelow < contentRect.height + offset) {
-      if (spaceAbove > contentRect.height + offset) {
+    if (placement.startsWith('bottom') && spaceBelow < contentRect.height + totalOffset) {
+      if (spaceAbove > contentRect.height + totalOffset) {
         actualPlacement = getOppositePosition(placement);
       }
-    } else if (placement.startsWith('top') && spaceAbove < contentRect.height + offset) {
-      if (spaceBelow > contentRect.height + offset) {
+    } else if (placement.startsWith('top') && spaceAbove < contentRect.height + totalOffset) {
+      if (spaceBelow > contentRect.height + totalOffset) {
         actualPlacement = getOppositePosition(placement);
       }
-    } else if (placement.startsWith('left') && spaceLeft < contentRect.width + offset) {
-      if (spaceRight > contentRect.width + offset) {
+    } else if (placement.startsWith('left') && spaceLeft < contentRect.width + totalOffset) {
+      if (spaceRight > contentRect.width + totalOffset) {
         actualPlacement = getOppositePosition(placement);
       }
-    } else if (placement.startsWith('right') && spaceRight < contentRect.width + offset) {
-      if (spaceLeft > contentRect.width + offset) {
+    } else if (placement.startsWith('right') && spaceRight < contentRect.width + totalOffset) {
+      if (spaceLeft > contentRect.width + totalOffset) {
         actualPlacement = getOppositePosition(placement);
       }
     }
@@ -77,22 +81,22 @@ export const usePopoverPosition = (
       case 'top':
       case 'top-start':
       case 'top-end':
-        y = triggerRect.top + scrollY - contentRect.height - offset;
+        y = triggerRect.top + scrollY - contentRect.height - totalOffset;
         break;
       case 'bottom':
       case 'bottom-start':
       case 'bottom-end':
-        y = triggerRect.bottom + scrollY + offset;
+        y = triggerRect.bottom + scrollY + totalOffset;
         break;
       case 'left':
       case 'left-start':
       case 'left-end':
-        x = triggerRect.left + scrollX - contentRect.width - offset;
+        x = triggerRect.left + scrollX - contentRect.width - totalOffset;
         break;
       case 'right':
       case 'right-start':
       case 'right-end':
-        x = triggerRect.right + scrollX + offset;
+        x = triggerRect.right + scrollX + totalOffset;
         break;
     }
 

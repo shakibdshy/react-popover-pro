@@ -33,7 +33,7 @@ export default function PopoverFeaturesExample() {
               Basic Popover
             </button>
           </PopoverTrigger>
-          <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+          <PopoverContent>
             <p className="text-gray-900 dark:text-gray-50">This is a basic popover.</p>
           </PopoverContent>
         </Popover>
@@ -50,7 +50,7 @@ export default function PopoverFeaturesExample() {
                   {placement.charAt(0).toUpperCase() + placement.slice(1)}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+              <PopoverContent>
                 <p className="text-gray-900 dark:text-gray-50">
                   This popover is placed on the {placement}.
                 </p>
@@ -70,7 +70,7 @@ export default function PopoverFeaturesExample() {
                 With Offset
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">20px offset from trigger.</p>
             </PopoverContent>
           </Popover>
@@ -81,7 +81,7 @@ export default function PopoverFeaturesExample() {
                 Animated
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Smooth animation effect.</p>
             </PopoverContent>
           </Popover>
@@ -98,7 +98,7 @@ export default function PopoverFeaturesExample() {
                 Click Trigger
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Opens on click.</p>
             </PopoverContent>
           </Popover>
@@ -109,7 +109,7 @@ export default function PopoverFeaturesExample() {
                 Hover Trigger
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Opens on hover with delay.</p>
             </PopoverContent>
           </Popover>
@@ -120,7 +120,7 @@ export default function PopoverFeaturesExample() {
                 Context Menu
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Right-click to open.</p>
             </PopoverContent>
           </Popover>
@@ -137,7 +137,7 @@ export default function PopoverFeaturesExample() {
                 Auto Placement
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Automatically adjusts position.</p>
             </PopoverContent>
           </Popover>
@@ -148,7 +148,7 @@ export default function PopoverFeaturesExample() {
                 With Middleware
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Uses offset and shift middleware.</p>
             </PopoverContent>
           </Popover>
@@ -159,7 +159,7 @@ export default function PopoverFeaturesExample() {
                 No Portal
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Rendered in DOM hierarchy.</p>
             </PopoverContent>
           </Popover>
@@ -170,7 +170,7 @@ export default function PopoverFeaturesExample() {
                 Default Open
               </button>
             </PopoverTrigger>
-            <PopoverContent className="bg-vanilla-gray-50 dark:bg-dark-800 p-4 rounded-md shadow-md border border-gray-200 dark:border-dark-700">
+            <PopoverContent>
               <p className="text-gray-900 dark:text-gray-50">Opens by default.</p>
             </PopoverContent>
           </Popover>

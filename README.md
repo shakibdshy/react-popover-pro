@@ -45,6 +45,7 @@ The Tooltip component is a simple wrapper around the Popover component that prov
 - Customizable appearance with arrow indicator
 - Multiple placement options
 - Delay control for showing/hiding
+- Color variants for different contexts
 - Fully accessible
 
 ### Usage
@@ -127,6 +128,65 @@ function MyComponent() {
 }
 ```
 
+#### Color Variants
+
+```jsx
+import { Tooltip } from './popover';
+
+function MyComponent() {
+  return (
+    <>
+      <Tooltip 
+        content="Default tooltip"
+        placement="top"
+      >
+        <button>Default</button>
+      </Tooltip>
+      
+      <Tooltip 
+        content="Primary tooltip"
+        placement="top"
+        variant="primary"
+      >
+        <button>Primary</button>
+      </Tooltip>
+      
+      <Tooltip 
+        content="Info tooltip"
+        placement="top"
+        variant="info"
+      >
+        <button>Info</button>
+      </Tooltip>
+      
+      <Tooltip 
+        content="Success tooltip"
+        placement="top"
+        variant="success"
+      >
+        <button>Success</button>
+      </Tooltip>
+      
+      <Tooltip 
+        content="Warning tooltip"
+        placement="top"
+        variant="warning"
+      >
+        <button>Warning</button>
+      </Tooltip>
+      
+      <Tooltip 
+        content="Danger tooltip"
+        placement="top"
+        variant="danger"
+      >
+        <button>Danger</button>
+      </Tooltip>
+    </>
+  );
+}
+```
+
 ### Props
 
 #### TooltipProps
@@ -144,16 +204,31 @@ function MyComponent() {
 | className | string | - | Additional class name for the tooltip |
 | asChild | boolean | false | Whether to use the child as the trigger |
 | backgroundColor | string | - | Custom background color for the tooltip |
+| variant | 'primary' \| 'info' \| 'success' \| 'warning' \| 'danger' | - | Predefined color variant for the tooltip |
 
 ### Default Styling
 
-The tooltip comes with minimal default styling that can be customized using the `className` prop or the `backgroundColor` prop. The default styling includes:
+The tooltip comes with minimal default styling that can be customized using the `className` prop, the `backgroundColor` prop, or the `variant` prop. The default styling includes:
 
 - A dark background
 - White text
 - Rounded corners
 - Small padding
 - An arrow pointing to the trigger element
+- Subtle box shadow for depth
+
+### Color Variants
+
+The tooltip supports the following color variants:
+
+- **Default**: Dark gray background
+- **Primary**: Blue background, suitable for primary actions
+- **Info**: Cyan background, suitable for informational content
+- **Success**: Green background, suitable for success messages
+- **Warning**: Amber background, suitable for warning messages
+- **Danger**: Red background, suitable for error messages or destructive actions
+
+Each variant includes appropriate styling for both the tooltip content and the arrow.
 
 ### Arrow Positioning
 

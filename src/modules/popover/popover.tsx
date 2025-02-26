@@ -9,7 +9,7 @@ import { usePopoverState } from "./use-popover-state";
 export const Popover: React.FC<PopoverProps> = ({
   children,
   placement = "bottom",
-  offset = 8,
+  offset = 16,
   defaultOpen = false,
   open,
   onOpenChange,
@@ -40,6 +40,10 @@ export const Popover: React.FC<PopoverProps> = ({
   boundaryElement = null,
   // Portal
   usePortal = true,
+  // Arrow
+  arrow = false,
+  // Variant
+  variant,
 }) => {
   const popoverState = usePopoverState({
     placement,
@@ -66,6 +70,8 @@ export const Popover: React.FC<PopoverProps> = ({
     autoPlacement,
     boundaryElement,
     usePortal,
+    arrow,
+    variant,
   });
 
   return (

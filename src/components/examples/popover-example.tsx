@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect, useRef } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/modules/popover";
 import { shift, offset } from "@/modules/popover/middleware";
 import PopoverFeaturesExample from "./popover-features-example";
@@ -7,6 +8,16 @@ import TooltipExample from "./tooltip-example";
 import TooltipArrowTest from "./tooltip-arrow-test";
 
 export default function PopoverExample() {
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
+
+  // Set portal target after component mounts
+  useEffect(() => {
+    if (portalRef.current) {
+      setPortalTarget(portalRef.current);
+    }
+  }, []);
+
   return (
     <div className="space-x-4">
       {/* Deep Nested Popover Example */}
@@ -20,7 +31,7 @@ export default function PopoverExample() {
         <PopoverTrigger asChild>
           <button className="px-4 py-2 bg-primary-500 text-white rounded">Level 1</button>
         </PopoverTrigger>
-        <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md min-w-[200px]">
+        <PopoverContent>
           <div className="space-y-4">
             <h3 className="font-bold">Level 1 Menu</h3>
             
@@ -30,7 +41,7 @@ export default function PopoverExample() {
                   Level 2 →
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md min-w-[200px]">
+              <PopoverContent>
                 <div className="space-y-4">
                   <h3 className="font-bold">Level 2 Menu</h3>
                   
@@ -40,7 +51,7 @@ export default function PopoverExample() {
                         Level 3 →
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md min-w-[200px]">
+                    <PopoverContent>
                       <div className="space-y-4">
                         <h3 className="font-bold">Level 3 Menu</h3>
                         
@@ -50,7 +61,7 @@ export default function PopoverExample() {
                               Level 4 →
                             </button>
                           </PopoverTrigger>
-                          <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md min-w-[200px]">
+                          <PopoverContent>
                             <div className="space-y-4">
                               <h3 className="font-bold">Level 4 Menu</h3>
                               <p>This is the deepest level!</p>
@@ -83,7 +94,7 @@ export default function PopoverExample() {
             Hover Me
           </button>
         </PopoverTrigger>
-        <PopoverContent className="bg-white dark:bg-dark-800 p-4 rounded-md shadow-md">
+        <PopoverContent>
           <div>
             <h3 className="font-bold mb-2">Hover Triggered Popover</h3>
             <p>
@@ -148,15 +159,17 @@ export default function PopoverExample() {
         <h2>New Features</h2>
         
         {/* Portal Target */}
-        <div id="popover-portal" style={{ position: "relative", zIndex: 9999 }}></div>
-        <Popover portalTarget={document.getElementById("popover-portal")!}>
-          <PopoverTrigger asChild>
-            <button>Custom Portal</button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <div>This popover is rendered in a custom portal target.</div>
-          </PopoverContent>
-        </Popover>
+        <div ref={portalRef} id="popover-portal" style={{ position: "relative", zIndex: 9999 }}></div>
+        {portalTarget && (
+          <Popover portalTarget={portalTarget}>
+            <PopoverTrigger asChild>
+              <button>Custom Portal</button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div>This popover is rendered in a custom portal target.</div>
+            </PopoverContent>
+          </Popover>
+        )}
 
         {/* Auto-sizing */}
         <Popover autoSize sameWidth>

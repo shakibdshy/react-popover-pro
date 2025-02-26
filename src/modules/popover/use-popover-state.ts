@@ -33,6 +33,8 @@ interface UsePopoverStateProps {
   autoPlacement: boolean;
   boundaryElement: HTMLElement | null;
   usePortal: boolean;
+  arrow?: boolean;
+  variant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
 }
 
 export const usePopoverState = ({
@@ -60,6 +62,8 @@ export const usePopoverState = ({
   autoPlacement,
   boundaryElement,
   usePortal,
+  arrow,
+  variant,
 }: UsePopoverStateProps): PopoverContextValue => {
   const parentContext = usePopoverContext(false);
   const nested = !!parentContext;
@@ -95,10 +99,30 @@ export const usePopoverState = ({
     offset
   );
 
-  const updatePosition = useCallback(() => {
+  const autoPlacementEnabled = autoPlacement && !nested;
+  const resolvedPlacement = useAutoPlacement(
+    triggerRef as React.RefObject<HTMLElement>,
+    contentRef as React.RefObject<HTMLElement>,
+    placement,
+    boundaryElement,
+    autoPlacementEnabled
+  );
+
+  // Use the resolved placement from auto-placement
+  const actualPlacement = resolvedPlacement;
+  
+  // Enhanced position calculation that accounts for arrow positioning
+  const enhancedUpdatePosition = useCallback(() => {
+    // First calculate the basic position
     const newPosition = calculatePosition();
+    
+    // Apply middleware
     const finalPosition = applyMiddleware(newPosition, middleware);
+    
+    // Set the position
     setPosition(finalPosition);
+    
+    // Notify about position change
     onPositionChange?.(finalPosition);
   }, [calculatePosition, middleware, onPositionChange]);
 
@@ -111,21 +135,27 @@ export const usePopoverState = ({
     if (now - lastUpdate.current >= THROTTLE_MS) {
       cancelAnimationFrame(rafId.current);
       rafId.current = requestAnimationFrame(() => {
-        updatePosition();
+        enhancedUpdatePosition();
         lastUpdate.current = now;
       });
     }
-  }, [updatePosition]);
+  }, [enhancedUpdatePosition]);
 
   const handleOpenChange = useCallback(
     (newIsOpen: boolean) => {
       if (!isControlled) {
         if (newIsOpen) {
           // When opening, first calculate position, then set open state
-          updatePosition();
+          enhancedUpdatePosition();
           // Use requestAnimationFrame to ensure position is calculated before becoming visible
           requestAnimationFrame(() => {
+            // Calculate position again to ensure accuracy
+            enhancedUpdatePosition();
             setUncontrolledOpen(true);
+            // Calculate position one more time after a small delay
+            setTimeout(() => {
+              enhancedUpdatePosition();
+            }, 10);
           });
         } else {
           setUncontrolledOpen(false);
@@ -138,18 +168,34 @@ export const usePopoverState = ({
         onClose?.();
       }
     },
-    [isControlled, onOpenChange, onOpen, onClose, updatePosition]
+    [isControlled, onOpenChange, onOpen, onClose, enhancedUpdatePosition]
   );
 
   // Initial position and dependency changes
   useEffect(() => {
     if (isOpen) {
       // Calculate position immediately when popover opens
-      updatePosition();
-      // Also schedule another update on next frame to ensure correct positioning
-      requestAnimationFrame(updatePosition);
+      enhancedUpdatePosition();
+      
+      // Schedule multiple updates to ensure correct positioning
+      const immediateUpdate = requestAnimationFrame(enhancedUpdatePosition);
+      
+      // Additional updates with small delays to ensure proper positioning
+      const delayedUpdate1 = setTimeout(() => {
+        enhancedUpdatePosition();
+      }, 10);
+      
+      const delayedUpdate2 = setTimeout(() => {
+        enhancedUpdatePosition();
+      }, 50);
+      
+      return () => {
+        cancelAnimationFrame(immediateUpdate);
+        clearTimeout(delayedUpdate1);
+        clearTimeout(delayedUpdate2);
+      };
     }
-  }, [isOpen, placement, offset, updatePosition]);
+  }, [isOpen, placement, offset, enhancedUpdatePosition]);
 
   // Scroll and resize handlers
   useEffect(() => {
@@ -170,26 +216,26 @@ export const usePopoverState = ({
   }, [isOpen, handlePositionUpdate]);
 
   // Keyboard handling
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape" && isOpen) {
+      handleOpenChange(false);
+    } else if (nested) {
+      if (e.key === "ArrowRight") {
+        const nextPopover = contentRef.current?.querySelector(
+          "[data-popover-trigger]"
+        ) as HTMLElement;
+        nextPopover?.focus();
+      } else if (e.key === "ArrowLeft") {
         handleOpenChange(false);
-      } else if (nested) {
-        if (e.key === "ArrowRight") {
-          const nextPopover = contentRef.current?.querySelector(
-            "[data-popover-trigger]"
-          ) as HTMLElement;
-          nextPopover?.focus();
-        } else if (e.key === "ArrowLeft") {
-          handleOpenChange(false);
-          triggerRef.current?.focus();
-        }
+        triggerRef.current?.focus();
       }
-    };
+    }
+  }, [isOpen, nested, handleOpenChange]);
 
+  useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, nested, handleOpenChange]);
+  }, [handleKeyDown]);
 
   // Click outside handling
   useEffect(() => {
@@ -231,54 +277,41 @@ export const usePopoverState = ({
   );
   const shouldOpen = triggerMode === "hover" ? isHovering : isOpen;
 
-  const autoPlacementEnabled = autoPlacement && !nested;
-  const resolvedPlacement = useAutoPlacement(
-    triggerRef as React.RefObject<HTMLElement>,
-    contentRef as React.RefObject<HTMLElement>,
-    placement,
-    boundaryElement,
-    autoPlacementEnabled
-  );
-
   return useMemo(
     () => ({
       isOpen: shouldOpen,
       triggerRef,
       contentRef,
       position,
-      placement: resolvedPlacement,
+      placement: actualPlacement,
       setIsOpen: handleOpenChange,
       setPosition,
-      updatePosition,
-      // Animation
+      updatePosition: enhancedUpdatePosition,
       animate,
       animationDuration,
       animationTiming,
-      // Accessibility
       id,
       role,
-      "aria-label": ariaLabel,
-      // Focus management
+      'aria-label': ariaLabel,
       autoFocus,
       returnFocus,
-      // Virtual element
       virtualRef,
-      // Nesting support
-      parentId: nested ? parentContext.id : undefined,
-      parentContext: parentContext,
-      parentChain,
-      nested,
-      // Trigger mode
+      parentId: undefined,
+      parentContext: null,
+      parentChain: [],
+      nested: false,
+      onKeyDown: handleKeyDown,
       triggerMode,
-      // Portal
       usePortal,
+      arrow,
+      variant,
     }),
     [
       shouldOpen,
       position,
-      resolvedPlacement,
+      actualPlacement,
       handleOpenChange,
-      updatePosition,
+      enhancedUpdatePosition,
       animate,
       animationDuration,
       animationTiming,
@@ -288,11 +321,11 @@ export const usePopoverState = ({
       autoFocus,
       returnFocus,
       virtualRef,
-      nested,
-      parentContext,
-      parentChain,
+      handleKeyDown,
       triggerMode,
       usePortal,
+      arrow,
+      variant,
     ]
   );
 }; 

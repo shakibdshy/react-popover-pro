@@ -62,6 +62,10 @@ export interface PopoverContextValue {
   triggerMode: TriggerMode;
   // Add usePortal property
   usePortal: boolean;
+  // Arrow
+  arrow?: boolean;
+  // Variant
+  variant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
 }
 
 export interface PopoverProps {
@@ -107,6 +111,10 @@ export interface PopoverProps {
   keepMounted?: boolean;
   // Portal
   usePortal?: boolean;
+  // Arrow
+  arrow?: boolean;
+  // Variant
+  variant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
 }
 
 export interface PopoverTriggerProps {
@@ -116,7 +124,7 @@ export interface PopoverTriggerProps {
 }
 
 export interface PopoverContentProps {
-  children: React.ReactElement<{ style?: React.CSSProperties }>;
+  children: React.ReactElement<{ style?: React.CSSProperties }> | React.ReactNode;
   className?: string;
   asChild?: boolean;
   // Animation overrides
@@ -130,4 +138,8 @@ export interface PopoverContentProps {
   width?: number | string;
   maxWidth?: number | string;
   maxHeight?: number | string;
+  // Arrow
+  arrow?: boolean;
+  // Variant
+  variant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
 } 
