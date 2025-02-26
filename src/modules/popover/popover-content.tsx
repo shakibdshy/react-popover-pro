@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { PopoverContentProps } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
@@ -39,9 +39,13 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       parentChain,
       usePortal,
       position,
-      setPosition,
-      triggerRef
+      triggerRef,
+      updatePosition
     } = context;
+    
+    // Track if position has been calculated
+    const [positionCalculated, setPositionCalculated] = useState(false);
+    const initialPositionRef = useRef(false);
     
     useFocusManagement(isOpen, contentRef, autoFocus, returnFocus);
 
@@ -51,40 +55,59 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       timingOverride || animationTiming
     );
 
-    // Update position when scrolling or resizing
+    // Calculate position immediately when component mounts or isOpen changes
+    useLayoutEffect(() => {
+      if (!isOpen || !triggerRef.current) {
+        initialPositionRef.current = false;
+        return;
+      }
+      
+      // Calculate position immediately
+      updatePosition();
+      
+      // Mark that we've done the initial position calculation
+      initialPositionRef.current = true;
+      
+      // Set a small timeout to ensure position calculation completes
+      const timer = setTimeout(() => {
+        setPositionCalculated(true);
+      }, 10);
+      
+      return () => clearTimeout(timer);
+    }, [isOpen, triggerRef, updatePosition]);
+
+    // Reset position calculated state when popover closes
+    useEffect(() => {
+      if (!isOpen) {
+        setPositionCalculated(false);
+        initialPositionRef.current = false;
+      }
+    }, [isOpen]);
+
+    // Update position on resize and scroll
     useEffect(() => {
       if (!isOpen || !triggerRef.current) return;
       
-      // Store initial position relative to document
-      const initialPosition = { ...position };
-      const initialScroll = { x: window.scrollX, y: window.scrollY };
-      
-      const updatePosition = () => {
-        if (!triggerRef.current) return;
-        
-        // Calculate scroll delta
-        const scrollDeltaX = window.scrollX - initialScroll.x;
-        const scrollDeltaY = window.scrollY - initialScroll.y;
-        
-        // Update position to keep it relative to the initial position
-        setPosition({
-          x: initialPosition.x + scrollDeltaX,
-          y: initialPosition.y + scrollDeltaY
-        });
+      const handleResize = () => {
+        updatePosition();
       };
       
-      // Set up event listeners for scroll and resize
-      window.addEventListener('scroll', updatePosition, { passive: true });
-      window.addEventListener('resize', updatePosition, { passive: true });
+      const handleScroll = () => {
+        updatePosition();
+      };
+      
+      window.addEventListener('resize', handleResize, { passive: true });
+      window.addEventListener('scroll', handleScroll, { passive: true, capture: true });
       
       return () => {
-        window.removeEventListener('scroll', updatePosition);
-        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleScroll);
       };
-    }, [isOpen, triggerRef, position, setPosition]);
+    }, [isOpen, triggerRef, updatePosition]);
 
-    // Don't render until animation says we should
-    if (!shouldRender) return null;
+    // Don't render until animation says we should and position is calculated
+    // But if we've already done the initial position calculation, we can render
+    if (!shouldRender || (isOpen && !positionCalculated && !initialPositionRef.current)) return null;
 
     const defaultStyles = {
       position: "absolute" as const,
@@ -111,6 +134,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       onClick: handleContentClick,
       onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
       onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
+      "data-popover-content": "true",
     };
 
     const content = asChild && React.isValidElement(children) ? (

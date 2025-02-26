@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { PopoverTriggerProps } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
 
@@ -11,37 +11,40 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
       throw new Error("PopoverTrigger must be used within a Popover");
     }
 
-    const handleClick = (e: React.MouseEvent) => {
+    const handleClick = useCallback((e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (disabled) return;
       if (context.triggerMode === "click") {
+        context.updatePosition();
         context.setIsOpen(!context.isOpen);
       }
-    };
+    }, [context, disabled]);
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = useCallback(() => {
       if (disabled) return;
       if (context.triggerMode === "hover") {
+        context.updatePosition();
         context.setIsOpen(true);
       }
-    };
+    }, [context, disabled]);
 
-    const handleMouseLeave = () => {
+    const handleMouseLeave = useCallback(() => {
       if (disabled) return;
       if (context.triggerMode === "hover") {
         context.setIsOpen(false);
       }
-    };
+    }, [context, disabled]);
 
-    const handleContextMenu = (e: React.MouseEvent) => {
+    const handleContextMenu = useCallback((e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (disabled) return;
       if (context.triggerMode === "context-menu") {
+        context.updatePosition();
         context.setIsOpen(!context.isOpen);
       }
-    };
+    }, [context, disabled]);
 
     if (asChild && React.isValidElement(children)) {
       const childProps = {

@@ -39,8 +39,10 @@ export const usePopoverPosition = (
     const contentRect = contentRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
+    
+    // Get scroll offsets for absolute positioning
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
 
     let x = 0;
     let y = 0;
@@ -70,7 +72,7 @@ export const usePopoverPosition = (
       }
     }
 
-    // Base positions for each placement
+    // Base positions for each placement - adding scroll offsets for absolute positioning
     switch (actualPlacement) {
       case 'top':
       case 'top-start':
@@ -94,7 +96,7 @@ export const usePopoverPosition = (
         break;
     }
 
-    // Horizontal alignment
+    // Horizontal alignment - adding scroll offsets for absolute positioning
     switch (actualPlacement) {
       case 'top':
       case 'bottom':
@@ -122,7 +124,7 @@ export const usePopoverPosition = (
         break;
     }
 
-    // Ensure popover stays within viewport
+    // Ensure popover stays within viewport - using scroll offsets for absolute positioning
     x = Math.max(scrollX + 10, Math.min(x, scrollX + viewportWidth - contentRect.width - 10));
     y = Math.max(scrollY + 10, Math.min(y, scrollY + viewportHeight - contentRect.height - 10));
 

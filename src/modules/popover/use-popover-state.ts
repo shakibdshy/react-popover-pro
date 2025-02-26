@@ -120,7 +120,16 @@ export const usePopoverState = ({
   const handleOpenChange = useCallback(
     (newIsOpen: boolean) => {
       if (!isControlled) {
-        setUncontrolledOpen(newIsOpen);
+        if (newIsOpen) {
+          // When opening, first calculate position, then set open state
+          updatePosition();
+          // Use requestAnimationFrame to ensure position is calculated before becoming visible
+          requestAnimationFrame(() => {
+            setUncontrolledOpen(true);
+          });
+        } else {
+          setUncontrolledOpen(false);
+        }
       }
       onOpenChange?.(newIsOpen);
       if (newIsOpen) {
@@ -129,12 +138,15 @@ export const usePopoverState = ({
         onClose?.();
       }
     },
-    [isControlled, onOpenChange, onOpen, onClose]
+    [isControlled, onOpenChange, onOpen, onClose, updatePosition]
   );
 
   // Initial position and dependency changes
   useEffect(() => {
     if (isOpen) {
+      // Calculate position immediately when popover opens
+      updatePosition();
+      // Also schedule another update on next frame to ensure correct positioning
       requestAnimationFrame(updatePosition);
     }
   }, [isOpen, placement, offset, updatePosition]);
@@ -146,12 +158,13 @@ export const usePopoverState = ({
     // Initial position update
     handlePositionUpdate();
 
-    window.addEventListener("scroll", handlePositionUpdate, { passive: true });
+    // Listen for both resize and scroll events since we're using absolute positioning
     window.addEventListener("resize", handlePositionUpdate, { passive: true });
+    window.addEventListener("scroll", handlePositionUpdate, { passive: true, capture: true });
 
     return () => {
-      window.removeEventListener("scroll", handlePositionUpdate);
       window.removeEventListener("resize", handlePositionUpdate);
+      window.removeEventListener("scroll", handlePositionUpdate);
       cancelAnimationFrame(rafId.current);
     };
   }, [isOpen, handlePositionUpdate]);
@@ -236,6 +249,7 @@ export const usePopoverState = ({
       placement: resolvedPlacement,
       setIsOpen: handleOpenChange,
       setPosition,
+      updatePosition,
       // Animation
       animate,
       animationDuration,
@@ -264,6 +278,7 @@ export const usePopoverState = ({
       position,
       resolvedPlacement,
       handleOpenChange,
+      updatePosition,
       animate,
       animationDuration,
       animationTiming,

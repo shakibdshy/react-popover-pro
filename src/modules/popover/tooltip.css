@@ -1,0 +1,90 @@
+.tooltip {
+  z-index: 1000;
+  pointer-events: none;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.tooltip-content {
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  max-width: 300px;
+}
+
+/* Arrow positioning based on placement */
+.tooltip-arrow[data-placement^="top"] {
+  bottom: -4px;
+  left: calc(50% - 4px);
+}
+
+.tooltip-arrow[data-placement="top-start"] {
+  bottom: -4px;
+  left: 12px;
+}
+
+.tooltip-arrow[data-placement="top-end"] {
+  bottom: -4px;
+  right: 12px;
+  left: auto;
+}
+
+.tooltip-arrow[data-placement^="bottom"] {
+  top: -4px;
+  left: calc(50% - 4px);
+}
+
+.tooltip-arrow[data-placement="bottom-start"] {
+  top: -4px;
+  left: 12px;
+}
+
+.tooltip-arrow[data-placement="bottom-end"] {
+  top: -4px;
+  right: 12px;
+  left: auto;
+}
+
+.tooltip-arrow[data-placement^="left"] {
+  right: -4px;
+  top: calc(50% - 4px);
+}
+
+.tooltip-arrow[data-placement="left-start"] {
+  right: -4px;
+  top: 12px;
+}
+
+.tooltip-arrow[data-placement="left-end"] {
+  right: -4px;
+  bottom: 12px;
+  top: auto;
+}
+
+.tooltip-arrow[data-placement^="right"] {
+  left: -4px;
+  top: calc(50% - 4px);
+}
+
+.tooltip-arrow[data-placement="right-start"] {
+  left: -4px;
+  top: 12px;
+}
+
+.tooltip-arrow[data-placement="right-end"] {
+  left: -4px;
+  bottom: 12px;
+  top: auto;
+}
+
+/* Custom tooltip styles that can be used with className */
+.custom-tooltip {
+  background-color: #6366f1 !important; /* Indigo color */
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* The arrow will inherit the background color from its parent */ 

@@ -35,6 +35,7 @@ export interface PopoverContextValue {
   placement: PopoverPlacement;
   setIsOpen: (value: boolean) => void;
   setPosition: (position: Position) => void;
+  updatePosition: () => void;
   // Animation
   animate?: boolean;
   animationDuration?: number;
