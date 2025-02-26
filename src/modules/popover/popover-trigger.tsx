@@ -16,8 +16,53 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
       e.stopPropagation();
       if (disabled) return;
       if (context.triggerMode === "click") {
-        context.updatePosition();
-        context.setIsOpen(!context.isOpen);
+        if (!context.isOpen) {
+          // First calculate position before opening
+          context.updatePosition();
+          
+          // If animation is disabled, we need to ensure position is calculated before showing
+          if (!context.animate) {
+            // Update position multiple times to ensure it's correct
+            context.updatePosition();
+            
+            // Then set open state
+            context.setIsOpen(true);
+            
+            // Schedule additional position updates to ensure correct positioning
+            requestAnimationFrame(() => {
+              context.updatePosition();
+              
+              // One more update after a small delay to ensure content is fully rendered
+              setTimeout(() => {
+                context.updatePosition();
+              }, 20);
+            });
+          } else {
+            // With animation, use requestAnimationFrame to ensure position is calculated before showing
+            requestAnimationFrame(() => {
+              // Set open state
+              context.setIsOpen(true);
+              
+              // Schedule additional position updates to ensure correct positioning
+              requestAnimationFrame(() => {
+                context.updatePosition();
+                
+                // One more update after a small delay to ensure content is fully rendered
+                setTimeout(() => {
+                  context.updatePosition();
+                  
+                  // And one final update for good measure
+                  setTimeout(() => {
+                    context.updatePosition();
+                  }, 50);
+                }, 20);
+              });
+            });
+          }
+        } else {
+          // Closing the popover - just set state
+          context.setIsOpen(false);
+        }
       }
     }, [context, disabled]);
 

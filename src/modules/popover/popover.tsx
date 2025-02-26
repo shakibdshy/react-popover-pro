@@ -21,6 +21,7 @@ export const Popover: React.FC<PopoverProps> = ({
   animate = true,
   animationDuration = 200,
   animationTiming = "ease",
+  animationEffect = "fade",
   // Events
   onOpen,
   onClose,
@@ -57,6 +58,7 @@ export const Popover: React.FC<PopoverProps> = ({
     animate,
     animationDuration,
     animationTiming,
+    animationEffect,
     onOpen,
     onClose,
     onPositionChange,

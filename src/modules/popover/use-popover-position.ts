@@ -29,13 +29,26 @@ export const usePopoverPosition = (
   offset: number = 12
 ) => {
   const lastPosition = useRef<Position>({ x: 0, y: 0 });
+  const initialPositionCalculated = useRef<boolean>(false);
 
   const calculatePosition = useCallback((): Position => {
-    if (!triggerRef.current || !contentRef.current) {
+    if (!triggerRef.current) {
       return lastPosition.current;
     }
 
+    // Get trigger element dimensions
     const triggerRect = triggerRef.current.getBoundingClientRect();
+    
+    // If content isn't rendered yet, calculate a default position based on trigger
+    if (!contentRef.current) {
+      // Set a default position based on the trigger and placement
+      const defaultX = triggerRect.left + window.scrollX;
+      const defaultY = triggerRect.bottom + window.scrollY + offset;
+      
+      lastPosition.current = { x: defaultX, y: defaultY };
+      return lastPosition.current;
+    }
+
     const contentRect = contentRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -133,6 +146,7 @@ export const usePopoverPosition = (
     y = Math.max(scrollY + 10, Math.min(y, scrollY + viewportHeight - contentRect.height - 10));
 
     const newPosition = { x, y };
+    initialPositionCalculated.current = true;
 
     // Only update if position actually changed
     if (

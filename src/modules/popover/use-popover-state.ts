@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { useHover } from "./use-hover";
 import { useAutoPlacement } from "./use-auto-placement";
 import { usePopoverContext } from "./popover-context";
-import { PopoverContextValue, Position, PopoverPlacement, TriggerMode, VirtualElement } from "./popover-types";
+import { PopoverContextValue, Position, PopoverPlacement, TriggerMode, VirtualElement, AnimationEffect } from "./popover-types";
 import { usePopoverPosition } from "./use-popover-position";
 import { applyMiddleware, Middleware } from "./middleware";
 
@@ -20,6 +20,7 @@ interface UsePopoverStateProps {
   animate: boolean;
   animationDuration: number;
   animationTiming: string;
+  animationEffect?: AnimationEffect;
   onOpen?: () => void;
   onClose?: () => void;
   onPositionChange?: (position: Position) => void;
@@ -49,6 +50,7 @@ export const usePopoverState = ({
   animate,
   animationDuration,
   animationTiming,
+  animationEffect = 'fade' as AnimationEffect,
   onOpen,
   onClose,
   onPositionChange,
@@ -141,35 +143,34 @@ export const usePopoverState = ({
     }
   }, [enhancedUpdatePosition]);
 
-  const handleOpenChange = useCallback(
-    (newIsOpen: boolean) => {
-      if (!isControlled) {
-        if (newIsOpen) {
-          // When opening, first calculate position, then set open state
-          enhancedUpdatePosition();
-          // Use requestAnimationFrame to ensure position is calculated before becoming visible
-          requestAnimationFrame(() => {
-            // Calculate position again to ensure accuracy
-            enhancedUpdatePosition();
-            setUncontrolledOpen(true);
-            // Calculate position one more time after a small delay
-            setTimeout(() => {
-              enhancedUpdatePosition();
-            }, 10);
-          });
-        } else {
-          setUncontrolledOpen(false);
-        }
-      }
-      onOpenChange?.(newIsOpen);
-      if (newIsOpen) {
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      // When opening, update position first
+      enhancedUpdatePosition();
+      
+      // Use requestAnimationFrame to ensure position is calculated before showing
+      requestAnimationFrame(() => {
+        // Set open state
+        setUncontrolledOpen(true);
         onOpen?.();
-      } else {
-        onClose?.();
-      }
-    },
-    [isControlled, onOpenChange, onOpen, onClose, enhancedUpdatePosition]
-  );
+        onOpenChange?.(true);
+        
+        // Schedule additional position updates to ensure correct positioning
+        requestAnimationFrame(() => {
+          enhancedUpdatePosition();
+          
+          // Additional updates with small delays
+          setTimeout(() => {
+            enhancedUpdatePosition();
+          }, 20);
+        });
+      });
+    } else {
+      setUncontrolledOpen(false);
+      onClose?.();
+      onOpenChange?.(false);
+    }
+  }, [enhancedUpdatePosition, onOpen, onClose, onOpenChange]);
 
   // Initial position and dependency changes
   useEffect(() => {
@@ -277,55 +278,47 @@ export const usePopoverState = ({
   );
   const shouldOpen = triggerMode === "hover" ? isHovering : isOpen;
 
-  return useMemo(
-    () => ({
-      isOpen: shouldOpen,
-      triggerRef,
-      contentRef,
-      position,
-      placement: actualPlacement,
-      setIsOpen: handleOpenChange,
-      setPosition,
-      updatePosition: enhancedUpdatePosition,
-      animate,
-      animationDuration,
-      animationTiming,
-      id,
-      role,
-      'aria-label': ariaLabel,
-      autoFocus,
-      returnFocus,
-      virtualRef,
-      parentId: undefined,
-      parentContext: null,
-      parentChain: [],
-      nested: false,
-      onKeyDown: handleKeyDown,
-      triggerMode,
-      usePortal,
-      arrow,
-      variant,
-    }),
-    [
-      shouldOpen,
-      position,
-      actualPlacement,
-      handleOpenChange,
-      enhancedUpdatePosition,
-      animate,
-      animationDuration,
-      animationTiming,
-      id,
-      role,
-      ariaLabel,
-      autoFocus,
-      returnFocus,
-      virtualRef,
-      handleKeyDown,
-      triggerMode,
-      usePortal,
-      arrow,
-      variant,
-    ]
-  );
+  // Add a check for client-side rendering
+  const isClient = typeof window !== 'undefined';
+  
+  // Use a ref to store the portal target to avoid re-renders
+  const portalTargetRef = useRef<HTMLElement | undefined>(undefined);
+  
+  // Set the portal target only on the client side
+  useEffect(() => {
+    if (isClient) {
+      portalTargetRef.current = document.body;
+    }
+  }, [isClient]);
+
+  return {
+    isOpen: shouldOpen,
+    triggerRef,
+    contentRef,
+    position,
+    placement: actualPlacement,
+    setIsOpen: handleOpenChange,
+    setPosition,
+    updatePosition: handlePositionUpdate,
+    animate,
+    animationDuration,
+    animationTiming,
+    animationEffect,
+    id,
+    role,
+    'aria-label': ariaLabel,
+    autoFocus,
+    returnFocus,
+    virtualRef,
+    parentId: undefined,
+    parentContext: null,
+    parentChain: [],
+    nested: false,
+    portalTarget: typeof window !== 'undefined' ? document.body : undefined,
+    onKeyDown: handleKeyDown,
+    triggerMode,
+    usePortal,
+    arrow,
+    variant,
+  };
 }; 

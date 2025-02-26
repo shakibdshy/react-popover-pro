@@ -21,6 +21,8 @@ export type PopoverPlacement =
 
 export type TriggerMode = 'click' | 'hover' | 'context-menu';
 
+export type AnimationEffect = 'fade' | 'scale' | 'shift-away' | 'shift-toward' | 'perspective';
+
 export interface VirtualElement {
   getBoundingClientRect: () => DOMRect;
 }
@@ -40,6 +42,7 @@ export interface PopoverContextValue {
   animate?: boolean;
   animationDuration?: number;
   animationTiming?: string;
+  animationEffect?: AnimationEffect;
   // Accessibility
   id: string;
   role?: string;
@@ -83,6 +86,7 @@ export interface PopoverProps {
   animate?: boolean;
   animationDuration?: number;
   animationTiming?: string;
+  animationEffect?: AnimationEffect;
   // Events
   onOpen?: () => void;
   onClose?: () => void;
@@ -131,6 +135,7 @@ export interface PopoverContentProps {
   animate?: boolean;
   animationDuration?: number;
   animationTiming?: string;
+  animationEffect?: AnimationEffect;
   // Accessibility
   role?: string;
   'aria-label'?: string;

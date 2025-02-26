@@ -7,5 +7,6 @@ export type {
   PopoverContentProps,
   PopoverPlacement,
   Position,
+  AnimationEffect,
 } from './popover-types';
 export type { TooltipProps } from './tooltip'; 

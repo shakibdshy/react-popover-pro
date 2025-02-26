@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useLayoutEffect, useRef } from "react";
+import React, { useEffect, useState, useLayoutEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { PopoverContentProps, PopoverPlacement } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
@@ -17,6 +17,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     animate: animateOverride,
     animationDuration: durationOverride,
     animationTiming: timingOverride,
+    animationEffect: effectOverride,
     // Accessibility
     role: roleOverride,
     "aria-label": ariaLabelOverride,
@@ -39,6 +40,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       animate,
       animationDuration,
       animationTiming,
+      animationEffect,
       autoFocus,
       returnFocus,
       parentChain,
@@ -54,6 +56,24 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const [positionCalculated, setPositionCalculated] = useState(false);
     const initialPositionRef = useRef(false);
     const [actualPlacement, setActualPlacement] = useState(placement);
+    
+    // Create a custom ref that will update position when the element is mounted
+    const setContentRef = useCallback((node: HTMLDivElement | null) => {
+      // Set the ref
+      contentRef.current = node;
+      
+      // If node exists and popover is open, update position
+      if (node && isOpen) {
+        // Update position immediately
+        updatePosition();
+        
+        // And again after a small delay
+        setTimeout(() => {
+          updatePosition();
+          setPositionCalculated(true);
+        }, 10);
+      }
+    }, [contentRef, isOpen, updatePosition]);
 
     // Use arrow from props or context
     const showArrow = arrow || contextArrow;
@@ -63,7 +83,9 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const { shouldRender, styles: animationStyles } = useAnimation(
       isOpen,
       durationOverride || animationDuration,
-      timingOverride || animationTiming
+      timingOverride || animationTiming,
+      effectOverride || animationEffect,
+      actualPlacement
     );
 
     // Calculate position immediately when component mounts or isOpen changes
@@ -72,29 +94,44 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         initialPositionRef.current = false;
         return;
       }
-
+      
       // Calculate position immediately
       updatePosition();
-
+      
       // Calculate position again after a small delay to ensure proper positioning
       const immediateTimer = setTimeout(() => {
         updatePosition();
       }, 0);
-
+      
       // Mark that we've done the initial position calculation
       initialPositionRef.current = true;
-
+      
       // Set a small timeout to ensure position calculation completes
       const timer = setTimeout(() => {
         updatePosition(); // Calculate position one more time
         setPositionCalculated(true);
-      }, 20);
-
+      }, 30); // Increased from 20ms to 30ms for better reliability
+      
       return () => {
         clearTimeout(immediateTimer);
         clearTimeout(timer);
       };
     }, [isOpen, triggerRef, updatePosition]);
+    
+    // Add a resize observer to update position when content size changes
+    useEffect(() => {
+      if (!isOpen || !contentRef.current) return;
+      
+      const resizeObserver = new ResizeObserver(() => {
+        updatePosition();
+      });
+      
+      resizeObserver.observe(contentRef.current);
+      
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }, [isOpen, contentRef, updatePosition]);
 
     // Reset position calculated state when popover closes
     useEffect(() => {
@@ -177,13 +214,33 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       }
     }, [isOpen, position, placement, triggerRef, contentRef, actualPlacement]);
 
+    // Update position when content becomes visible
+    useEffect(() => {
+      if (isOpen) {
+        // Update position immediately when opened
+        updatePosition();
+        
+        // And again after a small delay to ensure content is fully rendered
+        const timer = setTimeout(() => {
+          updatePosition();
+        }, 10);
+        
+        return () => clearTimeout(timer);
+      }
+    }, [isOpen, updatePosition]);
+
     // Don't render until animation says we should and position is calculated
     // But if we've already done the initial position calculation, we can render
     if (
       !shouldRender ||
       (isOpen && !positionCalculated && !initialPositionRef.current)
-    )
+    ) {
+      // If animation is disabled but we're open, force a position update
+      if (!(animateOverride ?? animate) && isOpen) {
+        updatePosition();
+      }
       return null;
+    }
 
     // Apply a small correction to fix the slight positioning offset
     const positionCorrection = {
@@ -234,7 +291,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const variantClass = variant ? `popover-${variant}` : "";
 
     const contentProps = {
-      ref: contentRef,
+      ref: setContentRef,
       style: defaultStyles,
       className: `${className} ${variantClass}`,
       id,
@@ -245,6 +302,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
       onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
       "data-popover-content": "true",
+      "data-animation": effectOverride || animationEffect || "fade",
     };
 
     // Create the popover content with optional arrow
@@ -275,7 +333,12 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         <div {...contentProps}>{popoverContent}</div>
       );
 
-    return usePortal ? createPortal(content, document.body) : content;
+    // Only use portal on client-side
+    if (usePortal && typeof window !== 'undefined') {
+      return createPortal(content, document.body);
+    }
+    
+    return content;
   }
 );
 

@@ -32,6 +32,11 @@ export default function Home() {
                 Popover with Arrows
               </Link>
             </li>
+            <li>
+              <Link href="/examples/popover-animations" className="text-blue-600 hover:underline">
+                Popover Animations
+              </Link>
+            </li>
           </ul>
         </div>
       </main>
