@@ -6,6 +6,7 @@ import { PopoverContentProps, PopoverPlacement } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
 import { useFocusManagement } from "./use-focus-management";
 import { useAnimation } from "./use-animation";
+import { useArrowPosition } from "./use-arrow-position";
 import "./popover.css";
 
 export const PopoverContent = React.memo<PopoverContentProps>(
@@ -59,10 +60,35 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const [actualPlacement, setActualPlacement] = useState(placement);
     const positionUpdateRef = useRef(false);
     const positionUpdateCountRef = useRef(0);
+    const arrowRef = useRef<HTMLDivElement>(null);
+    const [arrowStyles, setArrowStyles] = useState<React.CSSProperties>({});
+    const lastArrowStylesRef = useRef<React.CSSProperties>({});
+    const isClosingRef = useRef(false);
+    
+    // Get the arrow position calculation function
+    const { calculateArrowPosition } = useArrowPosition();
     
     // Determine if we're using a scale animation
     const currentEffect = effectOverride || animationEffect || "fade";
     const isScaleAnimation = currentEffect.startsWith("scale");
+
+    // Update arrow position helper function
+    const updateArrowPosition = useCallback(() => {
+      if (!arrowRef.current || !triggerRef.current || !contentRef.current || isClosingRef.current) {
+        return;
+      }
+      
+      const newArrowStyles = calculateArrowPosition(
+        triggerRef,
+        contentRef,
+        actualPlacement,
+        arrowRef
+      );
+      
+      // Store the last valid arrow styles
+      lastArrowStylesRef.current = newArrowStyles;
+      setArrowStyles(newArrowStyles);
+    }, [calculateArrowPosition, triggerRef, contentRef, actualPlacement]);
     
     // Create a custom ref that will update position when the element is mounted
     const setContentRef = useCallback((node: HTMLDivElement | null) => {
@@ -72,6 +98,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       // If node exists and popover is open, update position
       if (node && isOpen && !positionUpdateRef.current) {
         positionUpdateRef.current = true;
+        isClosingRef.current = false;
         
         // For scale animations, we need more position updates to ensure correct positioning
         if (isScaleAnimation) {
@@ -95,6 +122,9 @@ export const PopoverContent = React.memo<PopoverContentProps>(
                 positionUpdateCountRef.current = 4;
                 setPositionCalculated(true);
                 positionUpdateRef.current = false;
+                
+                // Update arrow position after content position is stable
+                updateArrowPosition();
               }, 20);
             }, 20);
           });
@@ -107,10 +137,13 @@ export const PopoverContent = React.memo<PopoverContentProps>(
             updatePosition();
             setPositionCalculated(true);
             positionUpdateRef.current = false;
+            
+            // Update arrow position after content position is stable
+            updateArrowPosition();
           }, 10);
         }
       }
-    }, [contentRef, isOpen, updatePosition, isScaleAnimation]);
+    }, [contentRef, isOpen, updatePosition, isScaleAnimation, updateArrowPosition]);
 
     // Use arrow from props or context
     const showArrow = arrow || contextArrow;
@@ -127,10 +160,19 @@ export const PopoverContent = React.memo<PopoverContentProps>(
 
     // Calculate position immediately when component mounts or isOpen changes
     useLayoutEffect(() => {
-      if (!isOpen || !triggerRef.current) {
+      if (!isOpen) {
+        // Mark as closing to prevent arrow position updates during close animation
+        isClosingRef.current = true;
+        return;
+      }
+      
+      if (!triggerRef.current) {
         initialPositionRef.current = false;
         return;
       }
+      
+      // Reset closing state when opening
+      isClosingRef.current = false;
       
       if (!initialPositionRef.current) {
         // Calculate position immediately
@@ -155,10 +197,16 @@ export const PopoverContent = React.memo<PopoverContentProps>(
               setTimeout(() => {
                 updatePosition();
                 setPositionCalculated(true);
+                
+                // Update arrow position after content position is stable
+                updateArrowPosition();
               }, 20);
             }, 20);
           } else {
             setPositionCalculated(true);
+            
+            // Update arrow position after content position is stable
+            updateArrowPosition();
           }
         }, delay);
         
@@ -166,16 +214,20 @@ export const PopoverContent = React.memo<PopoverContentProps>(
           clearTimeout(timer);
         };
       }
-    }, [isOpen, triggerRef, updatePosition, isScaleAnimation]);
+    }, [isOpen, triggerRef, updatePosition, isScaleAnimation, updateArrowPosition]);
     
     // Add a resize observer to update position when content size changes
     useEffect(() => {
       if (!isOpen || !contentRef.current) return;
       
       const resizeObserver = new ResizeObserver(() => {
-        if (!positionUpdateRef.current) {
+        if (!positionUpdateRef.current && !isClosingRef.current) {
           positionUpdateRef.current = true;
           updatePosition();
+          
+          // Update arrow position after content position is updated
+          updateArrowPosition();
+          
           setTimeout(() => {
             positionUpdateRef.current = false;
           }, 50);
@@ -187,15 +239,21 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       return () => {
         resizeObserver.disconnect();
       };
-    }, [isOpen, contentRef, updatePosition]);
+    }, [isOpen, contentRef, updatePosition, updateArrowPosition]);
 
     // Reset position calculated state when popover closes
     useEffect(() => {
       if (!isOpen) {
+        // Mark as closing to prevent arrow position updates during close animation
+        isClosingRef.current = true;
         setPositionCalculated(false);
         initialPositionRef.current = false;
         positionUpdateRef.current = false;
         positionUpdateCountRef.current = 0;
+        // Don't reset arrow styles here to prevent the arrow from moving during close animation
+      } else {
+        // Reset closing state when opening
+        isClosingRef.current = false;
       }
     }, [isOpen]);
 
@@ -204,9 +262,13 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       if (!isOpen || !triggerRef.current) return;
 
       const handleResize = () => {
-        if (!positionUpdateRef.current) {
+        if (!positionUpdateRef.current && !isClosingRef.current) {
           positionUpdateRef.current = true;
           updatePosition();
+          
+          // Update arrow position after content position is updated
+          updateArrowPosition();
+          
           setTimeout(() => {
             positionUpdateRef.current = false;
           }, 50);
@@ -214,9 +276,13 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       };
 
       const handleScroll = () => {
-        if (!positionUpdateRef.current) {
+        if (!positionUpdateRef.current && !isClosingRef.current) {
           positionUpdateRef.current = true;
           updatePosition();
+          
+          // Update arrow position after content position is updated
+          updateArrowPosition();
+          
           setTimeout(() => {
             positionUpdateRef.current = false;
           }, 50);
@@ -233,11 +299,11 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         window.removeEventListener("resize", handleResize);
         window.removeEventListener("scroll", handleScroll);
       };
-    }, [isOpen, triggerRef, updatePosition]);
+    }, [isOpen, triggerRef, updatePosition, updateArrowPosition]);
 
     // Detect actual placement based on position
     useEffect(() => {
-      if (!isOpen || !triggerRef.current || !contentRef.current) return;
+      if (!isOpen || !triggerRef.current || !contentRef.current || isClosingRef.current) return;
 
       const triggerRect = triggerRef.current.getBoundingClientRect();
       const contentRect = contentRef.current.getBoundingClientRect();
@@ -281,8 +347,11 @@ export const PopoverContent = React.memo<PopoverContentProps>(
 
       if (detectedPlacement !== actualPlacement) {
         setActualPlacement(detectedPlacement);
+        
+        // Update arrow position when placement changes
+        updateArrowPosition();
       }
-    }, [isOpen, position, placement, triggerRef, contentRef, actualPlacement]);
+    }, [isOpen, position, placement, triggerRef, contentRef, actualPlacement, updateArrowPosition]);
 
     // Don't render until animation says we should and position is calculated
     // But if we've already done the initial position calculation, we can render
@@ -374,7 +443,12 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       <>
         {children}
         {showArrow && (
-          <div className="popover-arrow" data-placement={actualPlacement} />
+          <div 
+            ref={arrowRef}
+            className="popover-arrow" 
+            data-placement={actualPlacement} 
+            style={isClosingRef.current ? lastArrowStylesRef.current : arrowStyles}
+          />
         )}
       </>
     );

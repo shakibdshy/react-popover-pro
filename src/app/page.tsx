@@ -18,16 +18,6 @@ export default function Home() {
           <h2 className="text-xl font-semibold mb-4">Examples</h2>
           <ul className="space-y-2">
             <li>
-              <Link href="/examples/tooltip-arrow-test" className="text-blue-600 hover:underline">
-                Tooltip Arrow Test
-              </Link>
-            </li>
-            <li>
-              <Link href="/examples/tooltip-variants" className="text-blue-600 hover:underline">
-                Tooltip Variants
-              </Link>
-            </li>
-            <li>
               <Link href="/examples/popover-arrow" className="text-blue-600 hover:underline">
                 Popover with Arrows
               </Link>
