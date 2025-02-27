@@ -292,6 +292,69 @@ export const usePopoverState = ({
     }
   }, [isClient]);
 
+  // Add a separate effect for auto-placement that responds to scroll events
+  useEffect(() => {
+    if (!isOpen || !autoPlacementEnabled) return;
+    
+    // Force a re-render when the placement changes
+    const handlePlacementChange = () => {
+      if (resolvedPlacement !== actualPlacement) {
+        // Add a class to enable smooth transitions
+        if (contentRef.current) {
+          contentRef.current.classList.add('position-transitioning');
+        }
+        
+        // Reset position to force recalculation with the new placement
+        setPosition({ x: 0, y: 0 });
+        
+        // Schedule an immediate position update
+        requestAnimationFrame(() => {
+          enhancedUpdatePosition();
+          
+          // Remove the transition class after the transition completes
+          setTimeout(() => {
+            if (contentRef.current) {
+              contentRef.current.classList.remove('position-transitioning');
+            }
+          }, 300); // Match the transition duration in CSS
+        });
+      }
+    };
+    
+    // Check if trigger is still visible in the viewport
+    const checkTriggerVisibility = () => {
+      if (!triggerRef.current) return;
+      
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      
+      // If trigger is completely outside viewport, close the popover
+      const isTriggerVisible = !(
+        triggerRect.bottom < 0 ||
+        triggerRect.top > viewportHeight ||
+        triggerRect.right < 0 ||
+        triggerRect.left > viewportWidth
+      );
+      
+      if (!isTriggerVisible && isOpen) {
+        // Close the popover if the trigger is no longer visible
+        handleOpenChange(false);
+      }
+    };
+    
+    // Initial check
+    handlePlacementChange();
+    
+    // Set up interval to check trigger visibility during scrolling
+    const visibilityInterval = setInterval(checkTriggerVisibility, 100);
+    
+    return () => {
+      // Cleanup
+      clearInterval(visibilityInterval);
+    };
+  }, [isOpen, autoPlacementEnabled, resolvedPlacement, actualPlacement, enhancedUpdatePosition, contentRef, triggerRef, handleOpenChange]);
+
   return {
     isOpen: shouldOpen,
     triggerRef,
