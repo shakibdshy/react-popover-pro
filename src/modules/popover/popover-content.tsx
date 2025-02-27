@@ -45,7 +45,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       autoFocus,
       returnFocus,
       parentChain,
-      usePortal,
+      portal,
       position,
       triggerRef,
       updatePosition,
@@ -506,7 +506,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       );
 
     // Only use portal on client-side
-    if (usePortal && typeof window !== 'undefined') {
+    if (portal && typeof window !== 'undefined') {
       return createPortal(content, document.body);
     }
     

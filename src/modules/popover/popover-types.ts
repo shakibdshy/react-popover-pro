@@ -76,8 +76,8 @@ export interface PopoverContextValue {
   onKeyDown?: (e: KeyboardEvent) => void;
   // Trigger mode
   triggerMode: TriggerMode;
-  // Add usePortal property
-  usePortal: boolean;
+  // Add portal property
+  portal: boolean;
   // Arrow
   arrow?: boolean;
   // Variant
@@ -127,7 +127,7 @@ export interface PopoverProps {
   lazyMount?: boolean;
   keepMounted?: boolean;
   // Portal
-  usePortal?: boolean;
+  portal?: boolean;
   // Arrow
   arrow?: boolean;
   // Variant

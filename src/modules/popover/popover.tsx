@@ -13,37 +13,27 @@ export const Popover: React.FC<PopoverProps> = ({
   defaultOpen = false,
   open,
   onOpenChange,
-  // Accessibility
-  id = `popover-${Math.random().toString(36).substr(2, 9)}`,
+  id = `popover-${Math.random().toString(36).substring(2, 11)}`,
   role = "dialog",
   "aria-label": ariaLabel,
-  // Animation
   animate = true,
   animationDuration = 200,
   animationTiming = "ease",
   animationEffect = "fade",
-  // Events
   onOpen,
   onClose,
   onPositionChange,
-  // Advanced features
   virtualRef,
   middleware = [],
-  // Focus management
   autoFocus = true,
   returnFocus = true,
-  // New features
   triggerMode = "click",
   openDelay = 0,
   closeDelay = 0,
-  // Auto placement
-  autoPlacement = false,
+  autoPlacement = true,
   boundaryElement = null,
-  // Portal
-  usePortal = true,
-  // Arrow
+  portal = true,
   arrow = false,
-  // Variant
   variant,
 }) => {
   const popoverState = usePopoverState({
@@ -71,7 +61,7 @@ export const Popover: React.FC<PopoverProps> = ({
     closeDelay,
     autoPlacement,
     boundaryElement,
-    usePortal,
+    portal,
     arrow,
     variant,
   });

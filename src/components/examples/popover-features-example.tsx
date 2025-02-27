@@ -153,7 +153,7 @@ export default function PopoverFeaturesExample() {
             </PopoverContent>
           </Popover>
 
-          <Popover usePortal={false}>
+          <Popover portal={false}>
             <PopoverTrigger asChild>
               <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
                 No Portal
