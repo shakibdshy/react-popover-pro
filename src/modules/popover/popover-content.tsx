@@ -264,28 +264,50 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       const handleResize = () => {
         if (!positionUpdateRef.current && !isClosingRef.current) {
           positionUpdateRef.current = true;
+          
+          // Add transition class before updating position
+          if (contentRef.current) {
+            contentRef.current.classList.add('position-transitioning');
+          }
+          
+          // Update position
           updatePosition();
           
           // Update arrow position after content position is updated
           updateArrowPosition();
           
+          // Remove transition class after the transition completes
           setTimeout(() => {
+            if (contentRef.current) {
+              contentRef.current.classList.remove('position-transitioning');
+            }
             positionUpdateRef.current = false;
-          }, 50);
+          }, 300); // Match the transition duration in CSS
         }
       };
 
       const handleScroll = () => {
         if (!positionUpdateRef.current && !isClosingRef.current) {
           positionUpdateRef.current = true;
+          
+          // Add transition class before updating position
+          if (contentRef.current) {
+            contentRef.current.classList.add('position-transitioning');
+          }
+          
+          // Update position
           updatePosition();
           
           // Update arrow position after content position is updated
           updateArrowPosition();
           
+          // Remove transition class after the transition completes
           setTimeout(() => {
+            if (contentRef.current) {
+              contentRef.current.classList.remove('position-transitioning');
+            }
             positionUpdateRef.current = false;
-          }, 50);
+          }, 300); // Match the transition duration in CSS
         }
       };
 
@@ -350,6 +372,18 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         
         // Update arrow position when placement changes
         updateArrowPosition();
+        
+        // Add transition class when placement changes
+        if (contentRef.current) {
+          contentRef.current.classList.add('position-transitioning');
+          
+          // Remove the class after the transition completes
+          setTimeout(() => {
+            if (contentRef.current) {
+              contentRef.current.classList.remove('position-transitioning');
+            }
+          }, 300); // Match the transition duration in CSS
+        }
       }
     }, [isOpen, position, placement, triggerRef, contentRef, actualPlacement, updateArrowPosition]);
 
