@@ -50,6 +50,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       updatePosition,
       placement,
       arrow: contextArrow,
+      variant: contextVariant,
     } = context;
 
     // Track if position has been calculated
@@ -57,6 +58,11 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const initialPositionRef = useRef(false);
     const [actualPlacement, setActualPlacement] = useState(placement);
     const positionUpdateRef = useRef(false);
+    const positionUpdateCountRef = useRef(0);
+    
+    // Determine if we're using a scale animation
+    const currentEffect = effectOverride || animationEffect || "fade";
+    const isScaleAnimation = currentEffect.startsWith("scale");
     
     // Create a custom ref that will update position when the element is mounted
     const setContentRef = useCallback((node: HTMLDivElement | null) => {
@@ -66,28 +72,56 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       // If node exists and popover is open, update position
       if (node && isOpen && !positionUpdateRef.current) {
         positionUpdateRef.current = true;
-        // Update position immediately
-        updatePosition();
         
-        // And again after a small delay
-        setTimeout(() => {
+        // For scale animations, we need more position updates to ensure correct positioning
+        if (isScaleAnimation) {
+          // Update position immediately
           updatePosition();
-          setPositionCalculated(true);
-          positionUpdateRef.current = false;
-        }, 10);
+          positionUpdateCountRef.current = 1;
+          
+          // Update again in the next frame
+          requestAnimationFrame(() => {
+            updatePosition();
+            positionUpdateCountRef.current = 2;
+            
+            // And again after a small delay to ensure correct positioning
+            setTimeout(() => {
+              updatePosition();
+              positionUpdateCountRef.current = 3;
+              
+              // One more update for good measure with scale animations
+              setTimeout(() => {
+                updatePosition();
+                positionUpdateCountRef.current = 4;
+                setPositionCalculated(true);
+                positionUpdateRef.current = false;
+              }, 20);
+            }, 20);
+          });
+        } else {
+          // For non-scale animations, the standard approach works fine
+          updatePosition();
+          
+          // And again after a small delay
+          setTimeout(() => {
+            updatePosition();
+            setPositionCalculated(true);
+            positionUpdateRef.current = false;
+          }, 10);
+        }
       }
-    }, [contentRef, isOpen, updatePosition]);
+    }, [contentRef, isOpen, updatePosition, isScaleAnimation]);
 
     // Use arrow from props or context
     const showArrow = arrow || contextArrow;
 
     useFocusManagement(isOpen, contentRef, autoFocus, returnFocus);
 
-    const { shouldRender, styles: animationStyles } = useAnimation(
+    const { shouldRender, styles: animationStyles, transformOrigin } = useAnimation(
       isOpen,
       durationOverride || animationDuration,
       timingOverride || animationTiming,
-      effectOverride || animationEffect,
+      currentEffect,
       actualPlacement
     );
 
@@ -105,17 +139,34 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         // Mark that we've done the initial position calculation
         initialPositionRef.current = true;
         
+        // For scale animations, we need more position updates
+        const delay = isScaleAnimation ? 30 : 20;
+        
         // Set a small timeout to ensure position calculation completes
         const timer = setTimeout(() => {
           updatePosition(); // Calculate position one more time
-          setPositionCalculated(true);
-        }, 30); // Increased from 20ms to 30ms for better reliability
+          
+          // For scale animations, do more updates
+          if (isScaleAnimation) {
+            setTimeout(() => {
+              updatePosition();
+              
+              // One more update for scale animations
+              setTimeout(() => {
+                updatePosition();
+                setPositionCalculated(true);
+              }, 20);
+            }, 20);
+          } else {
+            setPositionCalculated(true);
+          }
+        }, delay);
         
         return () => {
           clearTimeout(timer);
         };
       }
-    }, [isOpen, triggerRef, updatePosition]);
+    }, [isOpen, triggerRef, updatePosition, isScaleAnimation]);
     
     // Add a resize observer to update position when content size changes
     useEffect(() => {
@@ -144,6 +195,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         setPositionCalculated(false);
         initialPositionRef.current = false;
         positionUpdateRef.current = false;
+        positionUpdateCountRef.current = 0;
       }
     }, [isOpen]);
 
@@ -280,6 +332,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       }
     }
 
+    // For scale animations, we need to ensure the transform origin is set correctly
     const defaultStyles = {
       position: "absolute" as const,
       top: positionCorrection.y,
@@ -287,6 +340,8 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       margin: 0,
       zIndex: 1050 + parentChain.length,
       ...(animateOverride ?? animate ? animationStyles : {}),
+      // Set transform origin as a CSS variable for scale animations
+      ['--transform-origin' as string]: transformOrigin,
     };
 
     const handleContentClick = (e: React.MouseEvent) => {
@@ -295,12 +350,12 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     };
 
     // Determine variant class
-    const variantClass = variant ? `popover-${variant}` : "";
+    const variantClass = variant || contextVariant ? `popover-${variant || contextVariant}` : "";
 
     const contentProps = {
       ref: setContentRef,
       style: defaultStyles,
-      className: `${className} ${variantClass}`,
+      className: `popover-content ${className} ${variantClass}`,
       id,
       role: roleOverride || role,
       "aria-label": ariaLabelOverride || ariaLabel,
@@ -309,17 +364,19 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       onMouseDown: (e: React.MouseEvent) => e.stopPropagation(),
       onMouseUp: (e: React.MouseEvent) => e.stopPropagation(),
       "data-popover-content": "true",
-      "data-animation": effectOverride || animationEffect || "fade",
+      "data-animation": currentEffect,
+      "data-state": isOpen ? "open" : "closed",
+      "data-placement": actualPlacement,
     };
 
     // Create the popover content with optional arrow
     const popoverContent = (
-      <div className="popover-content">
+      <>
         {children}
         {showArrow && (
           <div className="popover-arrow" data-placement={actualPlacement} />
         )}
-      </div>
+      </>
     );
 
     const content =

@@ -11,6 +11,16 @@
   max-width: 400px;
   width: max-content;
   z-index: 1050;
+  will-change: opacity, transform;
+  transform-origin: var(--transform-origin, center);
+  /* Ensure hardware acceleration for smoother animations */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  /* Prevent flickering during animations */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Dark mode styles */
@@ -34,7 +44,15 @@
 /* Scale animations */
 .popover-content[data-animation^="scale"] {
   opacity: 0;
+  transform-origin: var(--transform-origin, center);
   transition-property: opacity, transform;
+  /* Ensure the transform doesn't affect the position calculation */
+  transform-box: border-box;
+  /* Prevent flickering during scale animations */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
 }
 .popover-content[data-animation^="scale"][data-state="open"] {
   opacity: 1;
@@ -43,17 +61,17 @@
 
 /* Scale - Normal */
 .popover-content[data-animation="scale"] {
-  transform: scale(0.9);
+  transform: scale(0.5);
 }
 
 /* Scale - Subtle */
 .popover-content[data-animation="scale-subtle"] {
-  transform: scale(0.95);
+  transform: scale(0.85);
 }
 
 /* Scale - Extreme */
 .popover-content[data-animation="scale-extreme"] {
-  transform: scale(0.8);
+  transform: scale(0.25);
 }
 
 /* Shift Away animations */
@@ -63,7 +81,7 @@
 }
 .popover-content[data-animation^="shift-away"][data-state="open"] {
   opacity: 1;
-  transform: translate(0, 0) !important;
+  transform: translate(0, 0);
 }
 
 /* Shift Away - Normal */
@@ -115,7 +133,7 @@
 }
 .popover-content[data-animation^="shift-toward"][data-state="open"] {
   opacity: 1;
-  transform: translate(0, 0) !important;
+  transform: translate(0, 0);
 }
 
 /* Shift Toward - Normal */

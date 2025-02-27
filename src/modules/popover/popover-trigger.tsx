@@ -12,6 +12,7 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
     }
 
     const positionUpdateRef = useRef(false);
+    const isScaleAnimation = (context.animationEffect || "fade").startsWith("scale");
 
     const handleClick = useCallback((e: React.MouseEvent) => {
       e.preventDefault();
@@ -32,7 +33,16 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
               positionUpdateRef.current = true;
               requestAnimationFrame(() => {
                 context.updatePosition();
-                positionUpdateRef.current = false;
+                
+                // For scale animations, do one more update
+                if (isScaleAnimation) {
+                  setTimeout(() => {
+                    context.updatePosition();
+                    positionUpdateRef.current = false;
+                  }, 20);
+                } else {
+                  positionUpdateRef.current = false;
+                }
               });
             }
           } else {
@@ -41,13 +51,34 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
               // Set open state
               context.setIsOpen(true);
               
-              // Schedule a single position update to ensure correct positioning
+              // Schedule position updates to ensure correct positioning
               if (!positionUpdateRef.current) {
                 positionUpdateRef.current = true;
-                requestAnimationFrame(() => {
-                  context.updatePosition();
-                  positionUpdateRef.current = false;
-                });
+                
+                // For scale animations, we need more position updates
+                if (isScaleAnimation) {
+                  // First update
+                  requestAnimationFrame(() => {
+                    context.updatePosition();
+                    
+                    // Second update after a small delay
+                    setTimeout(() => {
+                      context.updatePosition();
+                      
+                      // Third update for good measure
+                      setTimeout(() => {
+                        context.updatePosition();
+                        positionUpdateRef.current = false;
+                      }, 20);
+                    }, 20);
+                  });
+                } else {
+                  // For non-scale animations, a single update is sufficient
+                  requestAnimationFrame(() => {
+                    context.updatePosition();
+                    positionUpdateRef.current = false;
+                  });
+                }
               }
             });
           }
@@ -56,20 +87,43 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
           context.setIsOpen(false);
         }
       }
-    }, [context, disabled]);
+    }, [context, disabled, isScaleAnimation]);
 
     const handleMouseEnter = useCallback(() => {
       if (disabled) return;
       if (context.triggerMode === "hover") {
+        // Calculate position before opening
         context.updatePosition();
+        
+        // Set open state
         context.setIsOpen(true);
+        
+        // For scale animations, schedule additional position updates
+        if (isScaleAnimation && !positionUpdateRef.current) {
+          positionUpdateRef.current = true;
+          
+          // Schedule multiple position updates for scale animations
+          requestAnimationFrame(() => {
+            context.updatePosition();
+            
+            setTimeout(() => {
+              context.updatePosition();
+              
+              setTimeout(() => {
+                context.updatePosition();
+                positionUpdateRef.current = false;
+              }, 20);
+            }, 20);
+          });
+        }
       }
-    }, [context, disabled]);
+    }, [context, disabled, isScaleAnimation]);
 
     const handleMouseLeave = useCallback(() => {
       if (disabled) return;
       if (context.triggerMode === "hover") {
         context.setIsOpen(false);
+        positionUpdateRef.current = false;
       }
     }, [context, disabled]);
 
@@ -78,10 +132,36 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
       e.stopPropagation();
       if (disabled) return;
       if (context.triggerMode === "context-menu") {
+        // Calculate position before opening
         context.updatePosition();
-        context.setIsOpen(!context.isOpen);
+        
+        if (!context.isOpen) {
+          // Set open state
+          context.setIsOpen(true);
+          
+          // For scale animations, schedule additional position updates
+          if (isScaleAnimation && !positionUpdateRef.current) {
+            positionUpdateRef.current = true;
+            
+            // Schedule multiple position updates for scale animations
+            requestAnimationFrame(() => {
+              context.updatePosition();
+              
+              setTimeout(() => {
+                context.updatePosition();
+                
+                setTimeout(() => {
+                  context.updatePosition();
+                  positionUpdateRef.current = false;
+                }, 20);
+              }, 20);
+            });
+          }
+        } else {
+          context.setIsOpen(false);
+        }
       }
-    }, [context, disabled]);
+    }, [context, disabled, isScaleAnimation]);
 
     if (asChild && React.isValidElement(children)) {
       const childProps = {

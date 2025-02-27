@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, CSSProperties } from 'react';
 import { AnimationEffect, PopoverPlacement } from './popover-types';
 
 export const useAnimation = (
@@ -12,15 +12,27 @@ export const useAnimation = (
 ) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(isOpen);
+  const isScaleAnimation = effect.startsWith('scale');
 
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
       
+      // Use requestAnimationFrame to ensure the element is rendered before animating
       if (duration > 0) {
-        requestAnimationFrame(() => {
-          setIsAnimating(true);
-        });
+        // For scale animations, we need a bit more time to ensure correct positioning
+        if (isScaleAnimation) {
+          // Delay animation start slightly to ensure position is calculated
+          setTimeout(() => {
+            requestAnimationFrame(() => {
+              setIsAnimating(true);
+            });
+          }, 10);
+        } else {
+          requestAnimationFrame(() => {
+            setIsAnimating(true);
+          });
+        }
       } else {
         setIsAnimating(true);
       }
@@ -37,7 +49,7 @@ export const useAnimation = (
         setShouldRender(false);
       }
     }
-  }, [isOpen, duration]);
+  }, [isOpen, duration, isScaleAnimation]);
 
   // Get transform origin based on placement
   const getTransformOrigin = () => {
@@ -89,9 +101,9 @@ export const useAnimation = (
     // Scale factor - varies based on intensity
     const getScaleFactor = (intensity: 'subtle' | 'normal' | 'extreme') => {
       switch (intensity) {
-        case 'subtle': return 0.98;
-        case 'normal': return 0.95;
-        case 'extreme': return 0.85;
+        case 'subtle': return 0.85;
+        case 'normal': return 0.5;
+        case 'extreme': return 0.25;
       }
     };
 
@@ -159,15 +171,20 @@ export const useAnimation = (
   const transformOrigin = getTransformOrigin();
   const transformValues = getTransformValues();
 
-  const styles = duration > 0 ? {
+  // Create styles based on animation state
+  const styles: CSSProperties = duration > 0 ? {
     opacity: isAnimating ? 1 : 0,
     transform: isAnimating ? transformValues.end : transformValues.start,
     transformOrigin,
     transition: `opacity ${duration}ms ${timing}, transform ${duration}ms ${timing}`,
+    // Ensure the element is visible during animation
+    visibility: shouldRender ? 'visible' : 'hidden' as 'visible' | 'hidden',
+    // Force hardware acceleration for smoother animations
+    willChange: 'opacity, transform',
   } : {
     opacity: 1,
     transform: 'scale(1)',
   };
 
-  return { shouldRender, styles };
+  return { shouldRender, styles, transformOrigin };
 }; 
