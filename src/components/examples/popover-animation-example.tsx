@@ -26,6 +26,9 @@ export default function PopoverAnimationExample() {
   // Flatten the animation effects for the dropdown
   const allAnimationEffects = Object.values(animationEffectGroups).flat();
 
+  // Define placements
+  const placements: PopoverPlacement[] = ["top", "right", "bottom", "left"];
+
   return (
     <div className="space-y-12 p-8">
       <div className="mb-4">
@@ -204,7 +207,7 @@ export default function PopoverAnimationExample() {
         <h2 className="text-xl font-semibold mb-4">Interactive Playground</h2>
         <div className="p-6 border rounded-lg bg-gray-50">
           <div className="flex flex-wrap gap-4 justify-center">
-            {(["top", "right", "bottom", "left"] as PopoverPlacement[]).map((placement) => (
+            {placements.map((placement) => (
               <Popover 
                 key={placement}
                 placement={placement}

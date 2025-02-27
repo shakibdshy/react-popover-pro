@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import { PopoverTriggerProps } from "./popover-types";
 import { usePopoverContext } from "./popover-context";
 
@@ -10,6 +10,8 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
     if (!context) {
       throw new Error("PopoverTrigger must be used within a Popover");
     }
+
+    const positionUpdateRef = useRef(false);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
       e.preventDefault();
@@ -22,41 +24,31 @@ export const PopoverTrigger = React.memo<PopoverTriggerProps>(
           
           // If animation is disabled, we need to ensure position is calculated before showing
           if (!context.animate) {
-            // Update position multiple times to ensure it's correct
-            context.updatePosition();
-            
-            // Then set open state
+            // Set open state
             context.setIsOpen(true);
             
-            // Schedule additional position updates to ensure correct positioning
-            requestAnimationFrame(() => {
-              context.updatePosition();
-              
-              // One more update after a small delay to ensure content is fully rendered
-              setTimeout(() => {
+            // Schedule a single position update to ensure correct positioning
+            if (!positionUpdateRef.current) {
+              positionUpdateRef.current = true;
+              requestAnimationFrame(() => {
                 context.updatePosition();
-              }, 20);
-            });
+                positionUpdateRef.current = false;
+              });
+            }
           } else {
             // With animation, use requestAnimationFrame to ensure position is calculated before showing
             requestAnimationFrame(() => {
               // Set open state
               context.setIsOpen(true);
               
-              // Schedule additional position updates to ensure correct positioning
-              requestAnimationFrame(() => {
-                context.updatePosition();
-                
-                // One more update after a small delay to ensure content is fully rendered
-                setTimeout(() => {
+              // Schedule a single position update to ensure correct positioning
+              if (!positionUpdateRef.current) {
+                positionUpdateRef.current = true;
+                requestAnimationFrame(() => {
                   context.updatePosition();
-                  
-                  // And one final update for good measure
-                  setTimeout(() => {
-                    context.updatePosition();
-                  }, 50);
-                }, 20);
-              });
+                  positionUpdateRef.current = false;
+                });
+              }
             });
           }
         } else {

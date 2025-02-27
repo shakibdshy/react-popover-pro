@@ -21,6 +21,198 @@
   border-color: var(--color-dark-700, #334155);
 }
 
+/* Animation styles */
+/* Fade animation */
+.popover-content[data-animation="fade"] {
+  opacity: 0;
+  transition-property: opacity;
+}
+.popover-content[data-animation="fade"][data-state="open"] {
+  opacity: 1;
+}
+
+/* Scale animations */
+.popover-content[data-animation^="scale"] {
+  opacity: 0;
+  transition-property: opacity, transform;
+}
+.popover-content[data-animation^="scale"][data-state="open"] {
+  opacity: 1;
+  transform: scale(1) !important;
+}
+
+/* Scale - Normal */
+.popover-content[data-animation="scale"] {
+  transform: scale(0.9);
+}
+
+/* Scale - Subtle */
+.popover-content[data-animation="scale-subtle"] {
+  transform: scale(0.95);
+}
+
+/* Scale - Extreme */
+.popover-content[data-animation="scale-extreme"] {
+  transform: scale(0.8);
+}
+
+/* Shift Away animations */
+.popover-content[data-animation^="shift-away"] {
+  opacity: 0;
+  transition-property: opacity, transform;
+}
+.popover-content[data-animation^="shift-away"][data-state="open"] {
+  opacity: 1;
+  transform: translate(0, 0) !important;
+}
+
+/* Shift Away - Normal */
+.popover-content[data-animation="shift-away"][data-placement^="top"] {
+  transform: translateY(10px);
+}
+.popover-content[data-animation="shift-away"][data-placement^="bottom"] {
+  transform: translateY(-10px);
+}
+.popover-content[data-animation="shift-away"][data-placement^="left"] {
+  transform: translateX(10px);
+}
+.popover-content[data-animation="shift-away"][data-placement^="right"] {
+  transform: translateX(-10px);
+}
+
+/* Shift Away - Subtle */
+.popover-content[data-animation="shift-away-subtle"][data-placement^="top"] {
+  transform: translateY(5px);
+}
+.popover-content[data-animation="shift-away-subtle"][data-placement^="bottom"] {
+  transform: translateY(-5px);
+}
+.popover-content[data-animation="shift-away-subtle"][data-placement^="left"] {
+  transform: translateX(5px);
+}
+.popover-content[data-animation="shift-away-subtle"][data-placement^="right"] {
+  transform: translateX(-5px);
+}
+
+/* Shift Away - Extreme */
+.popover-content[data-animation="shift-away-extreme"][data-placement^="top"] {
+  transform: translateY(20px);
+}
+.popover-content[data-animation="shift-away-extreme"][data-placement^="bottom"] {
+  transform: translateY(-20px);
+}
+.popover-content[data-animation="shift-away-extreme"][data-placement^="left"] {
+  transform: translateX(20px);
+}
+.popover-content[data-animation="shift-away-extreme"][data-placement^="right"] {
+  transform: translateX(-20px);
+}
+
+/* Shift Toward animations */
+.popover-content[data-animation^="shift-toward"] {
+  opacity: 0;
+  transition-property: opacity, transform;
+}
+.popover-content[data-animation^="shift-toward"][data-state="open"] {
+  opacity: 1;
+  transform: translate(0, 0) !important;
+}
+
+/* Shift Toward - Normal */
+.popover-content[data-animation="shift-toward"][data-placement^="top"] {
+  transform: translateY(-10px);
+}
+.popover-content[data-animation="shift-toward"][data-placement^="bottom"] {
+  transform: translateY(10px);
+}
+.popover-content[data-animation="shift-toward"][data-placement^="left"] {
+  transform: translateX(-10px);
+}
+.popover-content[data-animation="shift-toward"][data-placement^="right"] {
+  transform: translateX(10px);
+}
+
+/* Shift Toward - Subtle */
+.popover-content[data-animation="shift-toward-subtle"][data-placement^="top"] {
+  transform: translateY(-5px);
+}
+.popover-content[data-animation="shift-toward-subtle"][data-placement^="bottom"] {
+  transform: translateY(5px);
+}
+.popover-content[data-animation="shift-toward-subtle"][data-placement^="left"] {
+  transform: translateX(-5px);
+}
+.popover-content[data-animation="shift-toward-subtle"][data-placement^="right"] {
+  transform: translateX(5px);
+}
+
+/* Shift Toward - Extreme */
+.popover-content[data-animation="shift-toward-extreme"][data-placement^="top"] {
+  transform: translateY(-20px);
+}
+.popover-content[data-animation="shift-toward-extreme"][data-placement^="bottom"] {
+  transform: translateY(20px);
+}
+.popover-content[data-animation="shift-toward-extreme"][data-placement^="left"] {
+  transform: translateX(-20px);
+}
+.popover-content[data-animation="shift-toward-extreme"][data-placement^="right"] {
+  transform: translateX(20px);
+}
+
+/* Perspective animations */
+.popover-content[data-animation^="perspective"] {
+  opacity: 0;
+  transition-property: opacity, transform;
+  transform-origin: center;
+}
+.popover-content[data-animation^="perspective"][data-state="open"] {
+  opacity: 1;
+  transform: perspective(1000px) rotate3d(0, 0, 0, 0) !important;
+}
+
+/* Perspective - Normal */
+.popover-content[data-animation="perspective"][data-placement^="top"] {
+  transform: perspective(1000px) rotate3d(1, 0, 0, 10deg);
+}
+.popover-content[data-animation="perspective"][data-placement^="bottom"] {
+  transform: perspective(1000px) rotate3d(1, 0, 0, -10deg);
+}
+.popover-content[data-animation="perspective"][data-placement^="left"] {
+  transform: perspective(1000px) rotate3d(0, 1, 0, 10deg);
+}
+.popover-content[data-animation="perspective"][data-placement^="right"] {
+  transform: perspective(1000px) rotate3d(0, 1, 0, -10deg);
+}
+
+/* Perspective - Subtle */
+.popover-content[data-animation="perspective-subtle"][data-placement^="top"] {
+  transform: perspective(1000px) rotate3d(1, 0, 0, 5deg);
+}
+.popover-content[data-animation="perspective-subtle"][data-placement^="bottom"] {
+  transform: perspective(1000px) rotate3d(1, 0, 0, -5deg);
+}
+.popover-content[data-animation="perspective-subtle"][data-placement^="left"] {
+  transform: perspective(1000px) rotate3d(0, 1, 0, 5deg);
+}
+.popover-content[data-animation="perspective-subtle"][data-placement^="right"] {
+  transform: perspective(1000px) rotate3d(0, 1, 0, -5deg);
+}
+
+/* Perspective - Extreme */
+.popover-content[data-animation="perspective-extreme"][data-placement^="top"] {
+  transform: perspective(1000px) rotate3d(1, 0, 0, 20deg);
+}
+.popover-content[data-animation="perspective-extreme"][data-placement^="bottom"] {
+  transform: perspective(1000px) rotate3d(1, 0, 0, -20deg);
+}
+.popover-content[data-animation="perspective-extreme"][data-placement^="left"] {
+  transform: perspective(1000px) rotate3d(0, 1, 0, 20deg);
+}
+.popover-content[data-animation="perspective-extreme"][data-placement^="right"] {
+  transform: perspective(1000px) rotate3d(0, 1, 0, -20deg);
+}
+
 /* Arrow base styling */
 .popover-arrow {
   position: absolute;

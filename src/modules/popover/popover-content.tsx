@@ -56,6 +56,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
     const [positionCalculated, setPositionCalculated] = useState(false);
     const initialPositionRef = useRef(false);
     const [actualPlacement, setActualPlacement] = useState(placement);
+    const positionUpdateRef = useRef(false);
     
     // Create a custom ref that will update position when the element is mounted
     const setContentRef = useCallback((node: HTMLDivElement | null) => {
@@ -63,7 +64,8 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       contentRef.current = node;
       
       // If node exists and popover is open, update position
-      if (node && isOpen) {
+      if (node && isOpen && !positionUpdateRef.current) {
+        positionUpdateRef.current = true;
         // Update position immediately
         updatePosition();
         
@@ -71,6 +73,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         setTimeout(() => {
           updatePosition();
           setPositionCalculated(true);
+          positionUpdateRef.current = false;
         }, 10);
       }
     }, [contentRef, isOpen, updatePosition]);
@@ -95,27 +98,23 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         return;
       }
       
-      // Calculate position immediately
-      updatePosition();
-      
-      // Calculate position again after a small delay to ensure proper positioning
-      const immediateTimer = setTimeout(() => {
+      if (!initialPositionRef.current) {
+        // Calculate position immediately
         updatePosition();
-      }, 0);
-      
-      // Mark that we've done the initial position calculation
-      initialPositionRef.current = true;
-      
-      // Set a small timeout to ensure position calculation completes
-      const timer = setTimeout(() => {
-        updatePosition(); // Calculate position one more time
-        setPositionCalculated(true);
-      }, 30); // Increased from 20ms to 30ms for better reliability
-      
-      return () => {
-        clearTimeout(immediateTimer);
-        clearTimeout(timer);
-      };
+        
+        // Mark that we've done the initial position calculation
+        initialPositionRef.current = true;
+        
+        // Set a small timeout to ensure position calculation completes
+        const timer = setTimeout(() => {
+          updatePosition(); // Calculate position one more time
+          setPositionCalculated(true);
+        }, 30); // Increased from 20ms to 30ms for better reliability
+        
+        return () => {
+          clearTimeout(timer);
+        };
+      }
     }, [isOpen, triggerRef, updatePosition]);
     
     // Add a resize observer to update position when content size changes
@@ -123,7 +122,13 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       if (!isOpen || !contentRef.current) return;
       
       const resizeObserver = new ResizeObserver(() => {
-        updatePosition();
+        if (!positionUpdateRef.current) {
+          positionUpdateRef.current = true;
+          updatePosition();
+          setTimeout(() => {
+            positionUpdateRef.current = false;
+          }, 50);
+        }
       });
       
       resizeObserver.observe(contentRef.current);
@@ -138,6 +143,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       if (!isOpen) {
         setPositionCalculated(false);
         initialPositionRef.current = false;
+        positionUpdateRef.current = false;
       }
     }, [isOpen]);
 
@@ -146,11 +152,23 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       if (!isOpen || !triggerRef.current) return;
 
       const handleResize = () => {
-        updatePosition();
+        if (!positionUpdateRef.current) {
+          positionUpdateRef.current = true;
+          updatePosition();
+          setTimeout(() => {
+            positionUpdateRef.current = false;
+          }, 50);
+        }
       };
 
       const handleScroll = () => {
-        updatePosition();
+        if (!positionUpdateRef.current) {
+          positionUpdateRef.current = true;
+          updatePosition();
+          setTimeout(() => {
+            positionUpdateRef.current = false;
+          }, 50);
+        }
       };
 
       window.addEventListener("resize", handleResize, { passive: true });
@@ -214,21 +232,6 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       }
     }, [isOpen, position, placement, triggerRef, contentRef, actualPlacement]);
 
-    // Update position when content becomes visible
-    useEffect(() => {
-      if (isOpen) {
-        // Update position immediately when opened
-        updatePosition();
-        
-        // And again after a small delay to ensure content is fully rendered
-        const timer = setTimeout(() => {
-          updatePosition();
-        }, 10);
-        
-        return () => clearTimeout(timer);
-      }
-    }, [isOpen, updatePosition]);
-
     // Don't render until animation says we should and position is calculated
     // But if we've already done the initial position calculation, we can render
     if (
@@ -236,8 +239,12 @@ export const PopoverContent = React.memo<PopoverContentProps>(
       (isOpen && !positionCalculated && !initialPositionRef.current)
     ) {
       // If animation is disabled but we're open, force a position update
-      if (!(animateOverride ?? animate) && isOpen) {
+      if (!(animateOverride ?? animate) && isOpen && !positionUpdateRef.current) {
+        positionUpdateRef.current = true;
         updatePosition();
+        setTimeout(() => {
+          positionUpdateRef.current = false;
+        }, 50);
       }
       return null;
     }

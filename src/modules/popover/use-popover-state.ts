@@ -115,33 +115,50 @@ export const usePopoverState = ({
   
   // Enhanced position calculation that accounts for arrow positioning
   const enhancedUpdatePosition = useCallback(() => {
+    // Skip position updates if we're not open
+    if (!isOpen) return;
+    
     // First calculate the basic position
     const newPosition = calculatePosition();
     
     // Apply middleware
     const finalPosition = applyMiddleware(newPosition, middleware);
     
-    // Set the position
-    setPosition(finalPosition);
-    
-    // Notify about position change
-    onPositionChange?.(finalPosition);
-  }, [calculatePosition, middleware, onPositionChange]);
+    // Only update if position actually changed significantly
+    if (
+      !position || 
+      Math.abs(finalPosition.x - position.x) > 1 || 
+      Math.abs(finalPosition.y - position.y) > 1
+    ) {
+      // Set the position
+      setPosition(finalPosition);
+      
+      // Notify about position change
+      onPositionChange?.(finalPosition);
+    }
+  }, [calculatePosition, middleware, onPositionChange, position, isOpen]);
 
   const rafId = useRef(0);
   const lastUpdate = useRef(0);
   const THROTTLE_MS = 16; // Approximately 60fps
+  const updateInProgress = useRef(false);
 
   const handlePositionUpdate = useCallback(() => {
+    // Skip if not open
+    if (!isOpen) return;
+    
+    // Throttle updates
     const now = Date.now();
-    if (now - lastUpdate.current >= THROTTLE_MS) {
+    if (now - lastUpdate.current >= THROTTLE_MS && !updateInProgress.current) {
+      updateInProgress.current = true;
       cancelAnimationFrame(rafId.current);
       rafId.current = requestAnimationFrame(() => {
         enhancedUpdatePosition();
         lastUpdate.current = now;
+        updateInProgress.current = false;
       });
     }
-  }, [enhancedUpdatePosition]);
+  }, [enhancedUpdatePosition, isOpen]);
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (open) {
@@ -155,14 +172,9 @@ export const usePopoverState = ({
         onOpen?.();
         onOpenChange?.(true);
         
-        // Schedule additional position updates to ensure correct positioning
+        // Schedule a single additional position update
         requestAnimationFrame(() => {
           enhancedUpdatePosition();
-          
-          // Additional updates with small delays
-          setTimeout(() => {
-            enhancedUpdatePosition();
-          }, 20);
         });
       });
     } else {
@@ -178,22 +190,11 @@ export const usePopoverState = ({
       // Calculate position immediately when popover opens
       enhancedUpdatePosition();
       
-      // Schedule multiple updates to ensure correct positioning
+      // Schedule a single update to ensure correct positioning
       const immediateUpdate = requestAnimationFrame(enhancedUpdatePosition);
-      
-      // Additional updates with small delays to ensure proper positioning
-      const delayedUpdate1 = setTimeout(() => {
-        enhancedUpdatePosition();
-      }, 10);
-      
-      const delayedUpdate2 = setTimeout(() => {
-        enhancedUpdatePosition();
-      }, 50);
       
       return () => {
         cancelAnimationFrame(immediateUpdate);
-        clearTimeout(delayedUpdate1);
-        clearTimeout(delayedUpdate2);
       };
     }
   }, [isOpen, placement, offset, enhancedUpdatePosition]);
