@@ -166,10 +166,9 @@ export default function PopoverArrowExample() {
         <div className="flex space-x-4">
           <Popover 
             arrow 
-            variant="primary" 
-            triggerMode="click" 
-            offset={16}
-            placement="bottom"
+            variant="primary"
+            autoPlacement
+            placement="left"
           >
             <PopoverTrigger asChild>
               <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors relative z-10">
