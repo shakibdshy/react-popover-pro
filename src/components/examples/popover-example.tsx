@@ -4,8 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/modules/popover";
 import { shift, offset } from "@/modules/popover/middleware";
 import PopoverFeaturesExample from "./popover-features-example";
-import TooltipExample from "./tooltip-example";
-import TooltipArrowTest from "./tooltip-arrow-test";
 
 export default function PopoverExample() {
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
@@ -218,9 +216,6 @@ export default function PopoverExample() {
 
       {/* Popover Features Example */}
       <PopoverFeaturesExample />
-
-      <TooltipExample />
-      <TooltipArrowTest />
     </div>
   );
 }
