@@ -1,5 +1,6 @@
 import FloatingToggle from "@/components/floating-toggle";
 import PopoverExamplesPage from "./examples/popover-examples/page";
+import { TooltipExamples } from "@/components/examples/tooltip-examples";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
         <FloatingToggle />
 
         <PopoverExamplesPage />
+        <TooltipExamples />
       </main>
     </div>
   );
