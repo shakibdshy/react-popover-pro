@@ -112,7 +112,10 @@ export default function PopoverExamples() {
             <div className="flex space-x-4 items-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button type="button" className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
+                  <button
+                    type="button"
+                    className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors"
+                  >
                     Click Me
                   </button>
                 </PopoverTrigger>
@@ -387,9 +390,7 @@ export default function PopoverExamples() {
                   </button>
                 </PopoverTrigger>
                 <PopoverContent arrow>
-                  <div className="p-2">
-                    <p>Default variant</p>
-                  </div>
+                  <p>Default variant</p>
                 </PopoverContent>
               </Popover>
 
@@ -399,10 +400,8 @@ export default function PopoverExamples() {
                     Primary
                   </button>
                 </PopoverTrigger>
-                <PopoverContent arrow>
-                  <div className="p-2">
-                    <p>Primary variant</p>
-                  </div>
+                <PopoverContent>
+                  <p>Primary variant</p>
                 </PopoverContent>
               </Popover>
 
@@ -412,10 +411,8 @@ export default function PopoverExamples() {
                     Info
                   </button>
                 </PopoverTrigger>
-                <PopoverContent arrow>
-                  <div className="p-2">
-                    <p>Info variant</p>
-                  </div>
+                <PopoverContent>
+                  <p>Info variant</p>
                 </PopoverContent>
               </Popover>
 
@@ -425,10 +422,8 @@ export default function PopoverExamples() {
                     Success
                   </button>
                 </PopoverTrigger>
-                <PopoverContent arrow>
-                  <div className="p-2">
-                    <p>Success variant</p>
-                  </div>
+                <PopoverContent>
+                  <p>Success variant</p>
                 </PopoverContent>
               </Popover>
 
@@ -438,10 +433,8 @@ export default function PopoverExamples() {
                     Warning
                   </button>
                 </PopoverTrigger>
-                <PopoverContent arrow>
-                  <div className="p-2">
-                    <p>Warning variant</p>
-                  </div>
+                <PopoverContent>
+                  <p>Warning variant</p>
                 </PopoverContent>
               </Popover>
 
@@ -451,10 +444,8 @@ export default function PopoverExamples() {
                     Danger
                   </button>
                 </PopoverTrigger>
-                <PopoverContent arrow>
-                  <div className="p-2">
-                    <p>Danger variant</p>
-                  </div>
+                <PopoverContent>
+                  <p>Danger variant</p>
                 </PopoverContent>
               </Popover>
             </div>
