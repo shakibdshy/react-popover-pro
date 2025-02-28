@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import {
   Popover,
   PopoverTrigger,
@@ -77,16 +76,10 @@ export default function PopoverExamples() {
 
   return (
     <div className="space-y-8 p-6">
-      <div className="mb-4">
-        <Link href="/" className="text-blue-600 hover:underline">
-          ← Back to Home
-        </Link>
-      </div>
-
       <h1 className="text-3xl font-bold">Popover Component Examples</h1>
 
       {/* Navigation */}
-      <nav className="sticky top-0 bg-white dark:bg-gray-900 z-10 py-4 shadow-md">
+      <nav className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-4 shadow-md rounded-md">
         <ul className="flex flex-wrap gap-2">
           {sections.map((section) => (
             <li key={section.id}>
@@ -119,7 +112,7 @@ export default function PopoverExamples() {
             <div className="flex space-x-4 items-center">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
+                  <button type="button" className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
                     Click Me
                   </button>
                 </PopoverTrigger>
