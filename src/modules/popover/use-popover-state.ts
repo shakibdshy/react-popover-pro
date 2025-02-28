@@ -33,6 +33,7 @@ interface UsePopoverStateProps {
   closeDelay: number;
   autoPlacement: boolean;
   boundaryElement: HTMLElement | null;
+  portalTarget?: HTMLElement;
   portal: boolean;
   arrow?: boolean;
   variant?: 'primary' | 'info' | 'success' | 'warning' | 'danger';
@@ -63,6 +64,7 @@ export const usePopoverState = ({
   closeDelay,
   autoPlacement,
   boundaryElement,
+  portalTarget,
   portal,
   arrow,
   variant,
@@ -378,7 +380,7 @@ export const usePopoverState = ({
     parentContext: null,
     parentChain: [],
     nested: false,
-    portalTarget: typeof window !== 'undefined' ? document.body : undefined,
+    portalTarget: portalTarget || (typeof window !== 'undefined' ? document.body : undefined),
     onKeyDown: handleKeyDown,
     triggerMode,
     portal,

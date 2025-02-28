@@ -507,7 +507,9 @@ export const PopoverContent = React.memo<PopoverContentProps>(
 
     // Only use portal on client-side
     if (portal && typeof window !== 'undefined') {
-      return createPortal(content, document.body);
+      // Use portalTarget from context or fall back to document.body
+      const target = context.portalTarget || document.body;
+      return createPortal(content, target);
     }
     
     return content;

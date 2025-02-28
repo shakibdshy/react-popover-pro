@@ -1,5 +1,4 @@
 import Link from "next/link";
-import PopoverExample from "@/components/examples/popover-example";
 import FloatingToggle from "@/components/floating-toggle";
 
 export default function Home() {
@@ -10,7 +9,6 @@ export default function Home() {
         <p className="text-sm text-gray-500">Accessible and customizable popover and tooltip components for React applications.</p>
         
         <div className="flex flex-col gap-4">
-          <PopoverExample />
           <FloatingToggle />
         </div>
         
@@ -18,14 +16,26 @@ export default function Home() {
           <h2 className="text-xl font-semibold mb-4">Examples</h2>
           <ul className="space-y-2">
             <li>
-              <Link href="/examples/popover-arrow" className="text-blue-600 hover:underline">
-                Popover with Arrows
+              <Link href="/examples/popover-examples" className="text-blue-600 hover:underline">
+                All Popover Examples
               </Link>
+              <span className="ml-2 text-xs text-green-500 font-medium uppercase bg-green-100 px-2 py-0.5 rounded-full">New</span>
             </li>
-            <li>
-              <Link href="/examples/popover-animations" className="text-blue-600 hover:underline">
-                Popover Animations
-              </Link>
+            <li className="text-gray-400">
+              <del>
+                <Link href="/examples/popover-arrow" className="text-gray-400 hover:underline">
+                  Popover with Arrows
+                </Link>
+              </del>
+              <span className="ml-2 text-xs text-gray-500">(Now in consolidated examples)</span>
+            </li>
+            <li className="text-gray-400">
+              <del>
+                <Link href="/examples/popover-animations" className="text-gray-400 hover:underline">
+                  Popover Animations
+                </Link>
+              </del>
+              <span className="ml-2 text-xs text-gray-500">(Now in consolidated examples)</span>
             </li>
           </ul>
         </div>
