@@ -110,7 +110,7 @@ export default function PopoverExamples() {
             </p>
 
             <div className="flex space-x-4 items-center">
-              <Popover>
+              <Popover arrow>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -136,7 +136,7 @@ export default function PopoverExamples() {
               elements.
             </p>
 
-            <Popover placement="right">
+            <Popover placement="right" arrow>
               <PopoverTrigger asChild>
                 <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
                   Rich Content
@@ -249,7 +249,7 @@ export default function PopoverExamples() {
                 </PopoverContent>
               </Popover>
 
-              <Popover triggerMode="hover" openDelay={200} closeDelay={300}>
+              <Popover triggerMode="hover" openDelay={200} closeDelay={300} placement="top">
                 <PopoverTrigger asChild>
                   <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
                     Hover Trigger
