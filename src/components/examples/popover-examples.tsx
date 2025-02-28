@@ -396,7 +396,7 @@ export default function PopoverExamples() {
 
               <Popover arrow variant="primary">
                 <PopoverTrigger asChild>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded">
+                  <button className="px-4 py-2 bg-primary-500 text-white rounded">
                     Primary
                   </button>
                 </PopoverTrigger>
@@ -407,7 +407,7 @@ export default function PopoverExamples() {
 
               <Popover arrow variant="info">
                 <PopoverTrigger asChild>
-                  <button className="px-4 py-2 bg-cyan-600 text-white rounded">
+                  <button className="px-4 py-2 bg-info-500 text-white rounded">
                     Info
                   </button>
                 </PopoverTrigger>
@@ -418,7 +418,7 @@ export default function PopoverExamples() {
 
               <Popover arrow variant="success">
                 <PopoverTrigger asChild>
-                  <button className="px-4 py-2 bg-green-600 text-white rounded">
+                  <button className="px-4 py-2 bg-success-500 text-white rounded">
                     Success
                   </button>
                 </PopoverTrigger>
@@ -429,7 +429,7 @@ export default function PopoverExamples() {
 
               <Popover arrow variant="warning">
                 <PopoverTrigger asChild>
-                  <button className="px-4 py-2 bg-amber-600 text-white rounded">
+                  <button className="px-4 py-2 bg-warning-500 text-white rounded">
                     Warning
                   </button>
                 </PopoverTrigger>
@@ -440,7 +440,7 @@ export default function PopoverExamples() {
 
               <Popover arrow variant="danger">
                 <PopoverTrigger asChild>
-                  <button className="px-4 py-2 bg-red-600 text-white rounded">
+                  <button className="px-4 py-2 bg-danger-600 text-white rounded">
                     Danger
                   </button>
                 </PopoverTrigger>

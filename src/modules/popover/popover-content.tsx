@@ -321,7 +321,7 @@ export const PopoverContent = React.memo<PopoverContentProps>(
         window.removeEventListener("resize", handleResize);
         window.removeEventListener("scroll", handleScroll);
       };
-    }, [isOpen, triggerRef, updatePosition, updateArrowPosition]);
+    }, [isOpen, triggerRef, updatePosition, updateArrowPosition, contentRef]);
 
     // Detect actual placement based on position
     useEffect(() => {
