@@ -1,3 +1,14 @@
+/**
+ * Popover Component Stylesheet
+ * 
+ * This CSS file provides styling for the popover component system, including:
+ * - Base popover appearance and positioning
+ * - Animation effects (fade, scale, shift, perspective)
+ * - Arrow styling for different placements
+ * - Dark mode support
+ * - Color variants (primary, info, success, warning, danger)
+ */
+
 /* Base popover styles */
 .popover-content {
   position: relative;
@@ -32,7 +43,7 @@
 }
 
 /* Animation styles */
-/* Fade animation */
+/* Fade animation - Simple opacity transition */
 .popover-content[data-animation="fade"] {
   opacity: 0;
   transition-property: opacity;
@@ -41,7 +52,7 @@
   opacity: 1;
 }
 
-/* Scale animations */
+/* Scale animations - Grows/shrinks the popover with different intensity options */
 .popover-content[data-animation^="scale"] {
   opacity: 0;
   transform-origin: var(--transform-origin, center);
@@ -59,22 +70,22 @@
   transform: scale(1) !important;
 }
 
-/* Scale - Normal */
+/* Scale - Normal intensity */
 .popover-content[data-animation="scale"] {
   transform: scale(0.5);
 }
 
-/* Scale - Subtle */
+/* Scale - Subtle intensity (less dramatic) */
 .popover-content[data-animation="scale-subtle"] {
   transform: scale(0.85);
 }
 
-/* Scale - Extreme */
+/* Scale - Extreme intensity (more dramatic) */
 .popover-content[data-animation="scale-extreme"] {
   transform: scale(0.25);
 }
 
-/* Shift Away animations */
+/* Shift Away animations - Moves the popover away from its trigger point */
 .popover-content[data-animation^="shift-away"] {
   opacity: 0;
   transition-property: opacity, transform;
@@ -84,7 +95,7 @@
   transform: translate(0, 0);
 }
 
-/* Shift Away - Normal */
+/* Shift Away - Normal intensity */
 .popover-content[data-animation="shift-away"][data-placement^="top"] {
   transform: translateY(10px);
 }
@@ -98,7 +109,7 @@
   transform: translateX(-10px);
 }
 
-/* Shift Away - Subtle */
+/* Shift Away - Subtle intensity (smaller distance) */
 .popover-content[data-animation="shift-away-subtle"][data-placement^="top"] {
   transform: translateY(5px);
 }
@@ -112,7 +123,7 @@
   transform: translateX(-5px);
 }
 
-/* Shift Away - Extreme */
+/* Shift Away - Extreme intensity (larger distance) */
 .popover-content[data-animation="shift-away-extreme"][data-placement^="top"] {
   transform: translateY(20px);
 }
@@ -126,7 +137,7 @@
   transform: translateX(-20px);
 }
 
-/* Shift Toward animations */
+/* Shift Toward animations - Moves the popover toward its trigger point */
 .popover-content[data-animation^="shift-toward"] {
   opacity: 0;
   transition-property: opacity, transform;
@@ -136,7 +147,7 @@
   transform: translate(0, 0);
 }
 
-/* Shift Toward - Normal */
+/* Shift Toward - Normal intensity */
 .popover-content[data-animation="shift-toward"][data-placement^="top"] {
   transform: translateY(-10px);
 }
@@ -150,7 +161,7 @@
   transform: translateX(10px);
 }
 
-/* Shift Toward - Subtle */
+/* Shift Toward - Subtle intensity (smaller distance) */
 .popover-content[data-animation="shift-toward-subtle"][data-placement^="top"] {
   transform: translateY(-5px);
 }
@@ -164,7 +175,7 @@
   transform: translateX(5px);
 }
 
-/* Shift Toward - Extreme */
+/* Shift Toward - Extreme intensity (larger distance) */
 .popover-content[data-animation="shift-toward-extreme"][data-placement^="top"] {
   transform: translateY(-20px);
 }
@@ -178,7 +189,7 @@
   transform: translateX(20px);
 }
 
-/* Perspective animations */
+/* Perspective animations - Adds a 3D rotation effect */
 .popover-content[data-animation^="perspective"] {
   opacity: 0;
   transition-property: opacity, transform;
@@ -189,7 +200,7 @@
   transform: perspective(1000px) rotate3d(0, 0, 0, 0) !important;
 }
 
-/* Perspective - Normal */
+/* Perspective - Normal intensity */
 .popover-content[data-animation="perspective"][data-placement^="top"] {
   transform: perspective(1000px) rotate3d(1, 0, 0, 10deg);
 }
@@ -203,7 +214,7 @@
   transform: perspective(1000px) rotate3d(0, 1, 0, -10deg);
 }
 
-/* Perspective - Subtle */
+/* Perspective - Subtle intensity (smaller angle) */
 .popover-content[data-animation="perspective-subtle"][data-placement^="top"] {
   transform: perspective(1000px) rotate3d(1, 0, 0, 5deg);
 }
@@ -217,7 +228,7 @@
   transform: perspective(1000px) rotate3d(0, 1, 0, -5deg);
 }
 
-/* Perspective - Extreme */
+/* Perspective - Extreme intensity (larger angle) */
 .popover-content[data-animation="perspective-extreme"][data-placement^="top"] {
   transform: perspective(1000px) rotate3d(1, 0, 0, 20deg);
 }
@@ -231,7 +242,7 @@
   transform: perspective(1000px) rotate3d(0, 1, 0, -20deg);
 }
 
-/* Arrow base styling */
+/* Arrow styling - Creates and positions the arrow that points to the trigger */
 .popover-arrow {
   position: absolute;
   width: 12px;
@@ -277,7 +288,8 @@
   border-color: var(--color-dark-700, #334155);
 }
 
-/* Variants */
+/* Color variants - Different color schemes for different contexts */
+/* Primary variant - Blue tones */
 .popover-content.popover-primary {
   background-color: var(--color-primary-600, #eff6ff);
   border-color: var(--color-primary-500, #bfdbfe);
@@ -305,6 +317,7 @@
   border-left-color: var(--color-primary-500, #bfdbfe);
 }
 
+/* Info variant - Cyan tones */
 .popover-content.popover-info {
   background-color: var(--color-info-600, #ecfeff);
   border-color: var(--color-info-500, #a5f3fc);
@@ -332,6 +345,7 @@
   border-left-color: var(--color-info-500, #a5f3fc);
 }
 
+/* Success variant - Green tones */
 .popover-content.popover-success {
   background-color: var(--color-success-600, #f0fdf4);
   border-color: var(--color-success-500, #bbf7d0);
@@ -359,6 +373,7 @@
   border-left-color: var(--color-success-500, #bbf7d0);
 }
 
+/* Warning variant - Yellow tones */
 .popover-content.popover-warning {
   background-color: var(--color-warning-600, #fffbeb);
   border-color: var(--color-warning-500, #fde68a);
@@ -386,6 +401,7 @@
   border-left-color: var(--color-warning-500, #fde68a);
 }
 
+/* Danger variant - Red tones */
 .popover-content.popover-danger {
   background-color: var(--color-danger-600, #fef2f2);
   border-color: var(--color-danger-500, #fecaca);

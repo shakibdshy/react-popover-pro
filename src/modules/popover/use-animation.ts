@@ -1,8 +1,32 @@
 'use client';
 
+/**
+ * @module useAnimation
+ * @description Custom hook for managing popover animations.
+ * 
+ * This hook handles the animation logic for popovers, including:
+ * - Controlling when elements should render based on animation state
+ * - Generating appropriate CSS styles for different animation effects
+ * - Calculating transform origins based on placement
+ * - Managing animation timing
+ */
+
 import { useEffect, useState, CSSProperties } from 'react';
 import { AnimationEffect, PopoverPlacement } from './popover-types';
 
+/**
+ * Custom hook that manages animation states and styles for popovers.
+ * 
+ * @param {boolean} isOpen - Whether the popover is open
+ * @param {number} [duration=200] - Animation duration in milliseconds
+ * @param {string} [timing='ease'] - CSS timing function (e.g., 'ease', 'linear')
+ * @param {AnimationEffect} [effect='fade'] - Animation effect to use
+ * @param {PopoverPlacement} [placement='bottom'] - Placement of the popover
+ * @returns {Object} Animation state and styles
+ * @returns {boolean} .shouldRender - Whether the element should be rendered in the DOM
+ * @returns {CSSProperties} .styles - CSS styles for the animation
+ * @returns {string} .transformOrigin - CSS transform-origin value for the animation
+ */
 export const useAnimation = (
   isOpen: boolean,
   duration: number = 200,
@@ -14,6 +38,11 @@ export const useAnimation = (
   const [shouldRender, setShouldRender] = useState(isOpen);
   const isScaleAnimation = effect.startsWith('scale');
 
+  /**
+   * Manages the animation lifecycle based on open state.
+   * - When opening: Renders immediately, then starts animation
+   * - When closing: Animates out, then removes from DOM
+   */
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
@@ -51,7 +80,12 @@ export const useAnimation = (
     }
   }, [isOpen, duration, isScaleAnimation]);
 
-  // Get transform origin based on placement
+  /**
+   * Calculates the appropriate transform origin based on placement.
+   * This ensures animations originate from the correct edge or corner.
+   * 
+   * @returns {string} CSS transform-origin value
+   */
   const getTransformOrigin = () => {
     switch (placement) {
       case 'top':
@@ -83,13 +117,23 @@ export const useAnimation = (
     }
   };
 
-  // Get transform values based on animation effect and placement
+  /**
+   * Calculates transform values for different animation effects.
+   * Handles scale, shift, and perspective animations with different intensities.
+   * 
+   * @returns {Object} Start and end transform values
+   */
   const getTransformValues = () => {
     // Direction based on placement
     const isVertical = placement.startsWith('top') || placement.startsWith('bottom');
     const isStart = placement.startsWith('top') || placement.startsWith('left');
     
-    // Distance for shift effects - varies based on intensity
+    /**
+     * Gets the appropriate distance for shift effects based on intensity.
+     * 
+     * @param {string} intensity - Animation intensity (subtle, normal, extreme)
+     * @returns {number} Distance in pixels
+     */
     const getDistance = (intensity: 'subtle' | 'normal' | 'extreme') => {
       switch (intensity) {
         case 'subtle': return 5;
@@ -98,7 +142,12 @@ export const useAnimation = (
       }
     };
 
-    // Scale factor - varies based on intensity
+    /**
+     * Gets the appropriate scale factor based on intensity.
+     * 
+     * @param {string} intensity - Animation intensity (subtle, normal, extreme)
+     * @returns {number} Scale factor (0-1)
+     */
     const getScaleFactor = (intensity: 'subtle' | 'normal' | 'extreme') => {
       switch (intensity) {
         case 'subtle': return 0.85;
@@ -107,7 +156,12 @@ export const useAnimation = (
       }
     };
 
-    // Rotation angle - varies based on intensity
+    /**
+     * Gets the appropriate rotation angle based on intensity.
+     * 
+     * @param {string} intensity - Animation intensity (subtle, normal, extreme)
+     * @returns {number} Rotation angle in degrees
+     */
     const getRotationAngle = (intensity: 'subtle' | 'normal' | 'extreme') => {
       switch (intensity) {
         case 'subtle': return 3;
@@ -119,7 +173,12 @@ export const useAnimation = (
     const direction = isStart ? -1 : 1;
     const axis = isVertical ? 'Y' : 'X';
     
-    // Determine the intensity based on the effect name
+    /**
+     * Determines the intensity based on the effect name suffix.
+     * 
+     * @param {string} effectName - Full effect name
+     * @returns {string} Intensity (subtle, normal, extreme)
+     */
     const getIntensity = (effectName: string): 'subtle' | 'normal' | 'extreme' => {
       if (effectName.endsWith('-subtle')) return 'subtle';
       if (effectName.endsWith('-extreme')) return 'extreme';
@@ -171,7 +230,9 @@ export const useAnimation = (
   const transformOrigin = getTransformOrigin();
   const transformValues = getTransformValues();
 
-  // Create styles based on animation state
+  /**
+   * Generates CSS styles for the animation based on current state.
+   */
   const styles: CSSProperties = duration > 0 ? {
     opacity: isAnimating ? 1 : 0,
     transform: isAnimating ? transformValues.end : transformValues.start,

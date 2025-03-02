@@ -1,8 +1,23 @@
 'use client';
 
+/**
+ * @module useAutoPlacement
+ * @description Custom hook for automatically determining the optimal placement of a popover.
+ * 
+ * This hook dynamically calculates the best position for a popover based on:
+ * - Available space in the viewport or boundary element
+ * - Preferred placement specified by the developer
+ * - Visibility of both trigger and content elements
+ * - Real-time updates as the window resizes or scrolls
+ */
+
 import { RefObject, useCallback, useEffect, useState, useRef } from 'react';
 import { PopoverPlacement } from './popover-types';
 
+/**
+ * Interface representing a rectangle with position and dimensions.
+ * Used for calculations related to element positioning.
+ */
 interface Rect {
   top: number;
   left: number;
@@ -12,6 +27,11 @@ interface Rect {
   height: number;
 }
 
+/**
+ * Gets the current viewport rectangle.
+ * 
+ * @returns {Rect} Rectangle representing the viewport dimensions and position
+ */
 const getViewportRect = (): Rect => {
   const scrollX = window.scrollX || window.pageXOffset || 0;
   const scrollY = window.scrollY || window.pageYOffset || 0;
@@ -26,6 +46,13 @@ const getViewportRect = (): Rect => {
   };
 };
 
+/**
+ * Gets the bounding rectangle for an element, constrained by an optional boundary element.
+ * 
+ * @param {HTMLElement | null} element - The element to get the bounding rectangle for
+ * @param {HTMLElement | null} boundary - Optional boundary element to constrain the rectangle
+ * @returns {Rect} The bounding rectangle, constrained by the boundary if provided
+ */
 const getBoundingRect = (element: HTMLElement | null, boundary: HTMLElement | null): Rect => {
   if (!element) return getViewportRect();
   
@@ -66,6 +93,14 @@ const getBoundingRect = (element: HTMLElement | null, boundary: HTMLElement | nu
   };
 };
 
+/**
+ * Calculates the available space for each possible placement.
+ * 
+ * @param {Rect} triggerRect - Rectangle of the trigger element
+ * @param {Rect} contentRect - Rectangle of the content element
+ * @param {Rect} boundaryRect - Rectangle of the boundary element or viewport
+ * @returns {Record<PopoverPlacement, number>} Available space for each placement option
+ */
 const getAvailableSpace = (
   triggerRect: Rect,
   contentRect: Rect,
@@ -88,10 +123,25 @@ const getAvailableSpace = (
   };
 };
 
+/**
+ * Extracts the base axis from a placement value.
+ * 
+ * @param {PopoverPlacement} placement - The placement to extract the base axis from
+ * @returns {'top' | 'bottom' | 'left' | 'right'} The base axis
+ */
 const getBaseAxis = (placement: PopoverPlacement): 'top' | 'bottom' | 'left' | 'right' => {
   return placement.split('-')[0] as 'top' | 'bottom' | 'left' | 'right';
 };
 
+/**
+ * Determines the optimal placement based on available space and preferred placement.
+ * 
+ * @param {PopoverPlacement} preferredPlacement - The preferred placement
+ * @param {Rect} triggerRect - Rectangle of the trigger element
+ * @param {Rect} contentRect - Rectangle of the content element
+ * @param {Rect} boundaryRect - Rectangle of the boundary element or viewport
+ * @returns {PopoverPlacement} The optimal placement
+ */
 const getOptimalPlacement = (
   preferredPlacement: PopoverPlacement,
   triggerRect: Rect,
@@ -144,6 +194,16 @@ const getOptimalPlacement = (
   return sortedPlacements[0][0];
 };
 
+/**
+ * Custom hook that automatically determines the optimal placement for a popover.
+ * 
+ * @param {RefObject<HTMLElement>} triggerRef - Reference to the trigger element
+ * @param {RefObject<HTMLElement>} contentRef - Reference to the content element
+ * @param {PopoverPlacement} preferredPlacement - The preferred placement
+ * @param {HTMLElement | null} [boundaryElement=null] - Optional element to use as a boundary
+ * @param {boolean} [enabled=true] - Whether auto-placement is enabled
+ * @returns {PopoverPlacement} The calculated optimal placement
+ */
 export const useAutoPlacement = (
   triggerRef: RefObject<HTMLElement>,
   contentRef: RefObject<HTMLElement>,
@@ -155,6 +215,10 @@ export const useAutoPlacement = (
   const lastUpdateTime = useRef(0);
   const THROTTLE_MS = 16; // Approximately 60fps
 
+  /**
+   * Updates the placement based on current element positions and available space.
+   * This function is throttled to prevent excessive calculations.
+   */
   const updatePlacement = useCallback(() => {
     if (!enabled || !triggerRef.current) return;
 
@@ -235,7 +299,15 @@ export const useAutoPlacement = (
     }
   }, [enabled, triggerRef, contentRef, preferredPlacement, boundaryElement, placement]);
 
-  // Helper function to calculate how much of the content would be visible
+  /**
+   * Calculates how much of the content would be visible with a given placement.
+   * 
+   * @param {PopoverPlacement} placement - The placement to calculate visibility for
+   * @param {DOMRect} triggerRect - Rectangle of the trigger element
+   * @param {DOMRect} contentRect - Rectangle of the content element
+   * @param {Rect} boundaryRect - Rectangle of the boundary element or viewport
+   * @returns {number} The visible area in square pixels
+   */
   const calculateVisibleArea = (
     placement: PopoverPlacement,
     triggerRect: DOMRect,
@@ -307,6 +379,13 @@ export const useAutoPlacement = (
     updatePlacement();
   }, [preferredPlacement, updatePlacement]);
 
+  /**
+   * Sets up observers to detect changes that might affect placement.
+   * This includes:
+   * - ResizeObserver for element size changes
+   * - Scroll and resize event listeners
+   * - MutationObserver for DOM changes
+   */
   useEffect(() => {
     if (!enabled) return;
 

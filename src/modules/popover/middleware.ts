@@ -26,7 +26,6 @@ export const shift = (padding = 8): ((position: Position) => Position) => {
 
 export const offset = (value = 5): ((position: Position) => Position) => {
   return (position: Position) => {
-    // Apply offset based on the current position relative to the trigger
     const isBelow = position.y > window.scrollY + (window.innerHeight / 2);
     const isRight = position.x > window.scrollX + (window.innerWidth / 2);
 
