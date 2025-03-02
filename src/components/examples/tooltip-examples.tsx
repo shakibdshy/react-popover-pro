@@ -13,10 +13,10 @@ export const TooltipExamples = () => {
         gap: "2rem",
       }}
     >
-      <h1>Tooltip Examples</h1>
+      <h1 className="text-4xl font-bold">Tooltip Examples</h1>
 
-      <div style={{ display: "flex", gap: "1rem" }}>
-        <h2>Basic Tooltip</h2>
+      <div className="flex gap-4">
+        <h2 className="text-lg font-bold">Basic Tooltip</h2>
         <Tooltip content="This is a basic tooltip">
           <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
             Hover me
@@ -24,9 +24,9 @@ export const TooltipExamples = () => {
         </Tooltip>
       </div>
 
-      <div>
-        <h2>Tooltip Placements</h2>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">Tooltip Placements</h2>
+        <div className="flex gap-4">
           <Tooltip content="Top tooltip" placement="top">
             <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
               Top
@@ -53,9 +53,9 @@ export const TooltipExamples = () => {
         </div>
       </div>
 
-      <div>
-        <h2>Tooltip Variants</h2>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">Tooltip Variants</h2>
+        <div className="flex gap-4">
           <Tooltip content="Primary tooltip" variant="primary">
             <button className="px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors">
               Primary
@@ -88,8 +88,8 @@ export const TooltipExamples = () => {
         </div>
       </div>
 
-      <div>
-        <h2>Tooltip with Rich Content</h2>
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">Tooltip with Rich Content</h2>
         <Tooltip
           content={
             <div>
@@ -105,8 +105,8 @@ export const TooltipExamples = () => {
         </Tooltip>
       </div>
 
-      <div>
-        <h2>Tooltip with Custom Animation</h2>
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold">Tooltip with Custom Animation</h2>
         <Tooltip
           content="This tooltip has a custom animation"
           animationEffect="scale"
