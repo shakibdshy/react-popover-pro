@@ -61,6 +61,15 @@ pnpm add @shakibdshy/react-popover-pro
 bun add @shakibdshy/react-popover-pro
 ```
 
+### Import Styles
+
+Make sure to import the CSS styles in your application:
+
+```jsx
+// Import the styles in your main file (e.g., main.tsx, App.tsx, or layout.tsx)
+import "@shakibdshy/react-popover-pro/style.css";
+```
+
 ## 🏁 Getting Started
 
 ### Basic Popover
