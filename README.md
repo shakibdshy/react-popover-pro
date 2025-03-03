@@ -49,16 +49,16 @@ React Popover Pro provides accessible and customizable popover and tooltip compo
 
 ```bash
 # Using npm
-npm install react-popover-pro
+npm install @shakibdshy/react-popover-pro
 
 # Using yarn
-yarn add react-popover-pro
+yarn add @shakibdshy/react-popover-pro
 
 # Using pnpm
-pnpm add react-popover-pro
+pnpm add @shakibdshy/react-popover-pro
 
 # Using bun
-bun add react-popover-pro
+bun add @shakibdshy/react-popover-pro
 ```
 
 ## 🏁 Getting Started
@@ -68,7 +68,7 @@ bun add react-popover-pro
 Here's a simple example of how to use the Popover component:
 
 ```jsx
-import { Popover, PopoverTrigger, PopoverContent } from 'react-popover-pro';
+import { Popover, PopoverTrigger, PopoverContent } from '@shakibdshy/react-popover-pro';
 
 function MyComponent() {
   return (
@@ -89,7 +89,7 @@ function MyComponent() {
 For simple hover tooltips, you can use the Tooltip component:
 
 ```jsx
-import { Tooltip } from 'react-popover-pro';
+import { Tooltip } from '@shakibdshy/react-popover-pro';
 
 function MyComponent() {
   return (
@@ -270,7 +270,7 @@ You can control the open state of the popover manually:
 
 ```jsx
 import { useState } from 'react';
-import { Popover, PopoverTrigger, PopoverContent } from 'react-popover-pro';
+import { Popover, PopoverTrigger, PopoverContent } from '@shakibdshy/react-popover-pro';
 
 function ControlledPopover() {
   const [isOpen, setIsOpen] = useState(false);
@@ -346,7 +346,7 @@ You can position a popover relative to a virtual element (like a cursor position
 
 ```jsx
 import { useState, useCallback } from 'react';
-import { Popover, PopoverContent } from 'react-popover-pro';
+import { Popover, PopoverContent } from '@shakibdshy/react-popover-pro';
 
 function CursorPopover() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -400,8 +400,8 @@ function CursorPopover() {
 You can use middleware functions to customize positioning:
 
 ```jsx
-import { Popover, PopoverTrigger, PopoverContent } from 'react-popover-pro';
-import { shift, offset } from 'react-popover-pro/middleware';
+import { Popover, PopoverTrigger, PopoverContent } from '@shakibdshy/react-popover-pro';
+import { shift, offset } from '@shakibdshy/react-popover-pro/middleware';
 
 function CustomPositionedPopover() {
   return (
